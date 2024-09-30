@@ -732,26 +732,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a7a70ba024b9dc04c27ea2f0c0548feb474ec5c54bba33a7f72f873a39d07b24"
 
 [[package]]
-name = "markup"
-version = "0.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "74a887ad620fe1022257343ac77fcdd3720e92888e1b2e66e1b7a4707f453898"
-dependencies = [
- "markup-proc-macro",
-]
-
-[[package]]
-name = "markup-proc-macro"
-version = "0.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9ab6ee21fd1855134cacf2f41afdf45f1bc456c7d7f6165d763b4647062dd2be"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "memchr"
 version = "2.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1119,7 +1099,6 @@ dependencies = [
  "actix-web",
  "chrono",
  "lazy_static",
- "markup",
  "regex",
  "serde",
  "serde_json",
