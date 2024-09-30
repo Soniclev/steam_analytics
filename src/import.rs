@@ -1,19 +1,20 @@
 use chrono::{DateTime, Utc};
 use regex::Regex;
+use lazy_static::lazy_static;
 
 use crate::{consts::DESIRED_PERCENTILE, prices::{PriceValue, PriceValueTrait}, steam_analyzer::analyze_steam_sell_history, MarketItem};
 
 
+lazy_static! {
+    static ref MARKET_NAME_REGEX: Regex = Regex::new(r#"<title>Steam Community Market :: Listings for (.+?)</title>"#).unwrap();
+    static ref APP_ID_REGEX: Regex = Regex::new(r#""appid":(\d+)"#).unwrap();
+}
 
 pub fn import_item(page: &String, current_datetime: DateTime<Utc>) -> Option<MarketItem> {
-    let re = Regex::new(r"<title>Steam Community Market :: Listings for (.+?)</title>").unwrap();
-
-    let app_id_re = Regex::new(r#""appid":(\d+)"#).unwrap();
-
     // Apply the regex to find matches
     let app_id: Option<u64>;
 
-    if let Some(caps) = app_id_re.captures(page) {
+    if let Some(caps) = APP_ID_REGEX.captures(page) {
         // Capture the appid from the first capturing group
         if let Some(p_app_id) = caps.get(1) {
             app_id = Some(p_app_id.as_str().parse::<u64>().unwrap());
@@ -25,7 +26,7 @@ pub fn import_item(page: &String, current_datetime: DateTime<Utc>) -> Option<Mar
     }
 
     // Apply the regex to find matches
-    if let Some(caps) = re.captures(page) {
+    if let Some(caps) = MARKET_NAME_REGEX.captures(page) {
         // Capture the market name from the first capturing group
         if let Some(market_name) = caps.get(1) {
             // let current_datetime = Utc::now();

@@ -39,19 +39,18 @@ lazy_static! {
 
 pub fn extract_sell_history(
     response: &str,
-    parse_until: DateTime<Utc>,
 ) -> Vec<(DateTime<Utc>, f64, i32)> {
     if let Some(caps) = SELL_HISTORY_REGEX.captures(response) {
         if let Ok(encoded_data) = caps[1].parse::<String>() {
             if let Ok(j) = serde_json::from_str::<Vec<Point>>(&encoded_data) {
                 let mut result: Vec<(DateTime<Utc>, f64, i32)> = Vec::new();
-                result.reserve_exact(7 * 24); // points for each hour
+
+                // reservse points for each hour (30 days)
+                // and for each day (10 years)
+                result.reserve_exact(30 * 24 + 365 * 10); 
 
                 for point in j.into_iter().rev() {
                     let date = steam_date_str_to_datetime(&point.date);
-                    if date < parse_until {
-                        break;
-                    }
                     let avg_price = point.avg_price;
                     let amount = point.amount.parse::<i32>().unwrap();
                     result.push((date, avg_price, amount));
@@ -72,7 +71,7 @@ pub fn analyze_steam_sell_history(
     let start = Instant::now();
     let days = 7;
     let date_range_start = current_datetime - Duration::days(days);
-    let history_data = extract_sell_history(response, date_range_start);
+    let history_data = extract_sell_history(response);
     
     let total_sold = history_data.iter().map(|x| x.2 as u64).sum::<u64>();
     let total_volume: f64 = history_data.iter().map(|x| x.1 * (x.2 as f64)).sum::<f64>();

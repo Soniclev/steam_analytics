@@ -4,15 +4,19 @@ use actix_web::http::StatusCode;
 use actix_web::Error;
 use chrono::Utc;
 
+use crate::compute::processor::MetricProcessor;
+use crate::compute::traits::AveragePrice;
+use crate::compute::traits::MetricType;
+use crate::compute::traits::TotalSold;
+use crate::compute::traits::TotalVolume;
 use crate::prices;
 
 use super::AppStateWithCounter;
 
 use actix_web::HttpResponse;
 
-use actix_web::Responder;
 use actix_web::{Result, web};
-use prices::{PriceValue, PriceValueTrait};
+use prices::{PriceValueTrait};
 
 
 pub async fn index(data: web::Data<AppStateWithCounter>) -> Result<HttpResponse> {
@@ -23,14 +27,19 @@ pub async fn index(data: web::Data<AppStateWithCounter>) -> Result<HttpResponse>
     // list all items
     let items = data.items.lock().unwrap();
     let total_items = items.len();
-    let total_sold = items
-        .iter()
-        .map(|x| x.1.analyzes_result.as_ref().unwrap().total_sold)
-        .sum::<u64>();
-    let total_volume = items
-        .iter()
-        .map(|x| x.1.analyzes_result.as_ref().unwrap().total_volume)
-        .sum::<f64>();
+
+    let mut processor = MetricProcessor::new();
+    processor.add_metric(MetricType::TotalSold, Box::new(TotalSold));
+    processor.add_metric(MetricType::AveragePrice, Box::new(AveragePrice));
+    processor.add_metric(MetricType::TotalVolume, Box::new(TotalVolume));
+
+    let results = processor.process(&items);
+
+    let mut metrics_html = String::new();
+    for result in results {
+        metrics_html.push_str(&format!("<p>{}</p>\n", result.to_html()));
+    }
+
     let mut item_list = String::new();
 
     let now = Utc::now();
@@ -79,10 +88,7 @@ pub async fn index(data: web::Data<AppStateWithCounter>) -> Result<HttpResponse>
         ));
     }
 
-    let global_stats = format!(
-        "Total sold: {} pcs., total volume: ${:.2}",
-        total_sold, total_volume
-    );
+    let global_stats = format!("{metrics_html}");
 
     let content = format!("<p>Request number: {counter}</p>\n<p>Total items: {total_items}</p>\n\n<p>Global stats:</p>\n<p>{global_stats}</p>\n<hr>\n<p>Items:</p>\n{item_list}\n\n<p>Response generating duration: {} µs</p>\n", resp_gen_started.elapsed().as_micros());
 
@@ -91,7 +97,7 @@ pub async fn index(data: web::Data<AppStateWithCounter>) -> Result<HttpResponse>
         .body(content))
 }
 
-pub async fn user_detail(
+pub async fn market_item_detail(
     data: web::Data<AppStateWithCounter>,
     params: web::Path<(u32, String)>,
 ) -> Result<HttpResponse, Error> {

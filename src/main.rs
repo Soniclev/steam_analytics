@@ -6,6 +6,7 @@ use std::{
     sync::Mutex,
 };
 
+mod compute;
 mod consts;
 mod import;
 mod prices;
@@ -47,7 +48,7 @@ async fn main() -> std::io::Result<()> {
             .route("/", web::get().to(webui::index))
             .service(
                 web::resource("/item/{app_id}/{market_name}")
-                    .route(web::get().to(webui::user_detail)),
+                    .route(web::get().to(webui::market_item_detail)),
             )
         // ;
     })
