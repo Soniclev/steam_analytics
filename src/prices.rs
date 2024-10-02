@@ -2,7 +2,9 @@ pub type PriceValue = u64;
 
 pub trait PriceValueTrait {
     fn from_usd_f64(value: f64) -> PriceValue;
+    #[allow(dead_code)]
     fn divide_by(&self, value: f64) -> PriceValue;
+    #[allow(dead_code)]
     fn multiply_by_percent(&self, percent: f64) -> PriceValue;
     fn to_usd(&self) -> f64;
 }

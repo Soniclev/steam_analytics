@@ -46,6 +46,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(counter.clone()) // <- register the created data
             .route("/", web::get().to(webui::index))
+            .route("/chart", web::get().to(webui::chart_handler))
             .service(
                 web::resource("/item/{app_id}/{market_name}")
                     .route(web::get().to(webui::market_item_detail)),

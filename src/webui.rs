@@ -16,7 +16,73 @@ use super::AppStateWithCounter;
 use actix_web::HttpResponse;
 
 use actix_web::{Result, web};
-use prices::{PriceValueTrait};
+use prices::PriceValueTrait;
+
+
+pub async fn chart_handler() -> Result<HttpResponse> {
+    let data = serde_json::json!({
+        "labels": ["January", "February", "March", "April", "May", "June"],
+        "datasets": [
+            {
+                "label": "My First Dataset",
+                "data": [65, 59, 80, 81, 56, 55],
+                "borderColor": "rgba(75, 192, 192, 1)",
+                "fill": false
+            },
+            {
+                "label": "My Second Dataset",
+                "data": [28, 48, 40, 19, 86, 27],
+                "borderColor": "rgba(153, 102, 255, 1)",
+                "fill": false
+            }
+        ]
+    });
+
+    let html = format!(r#"
+    <html>
+        <head>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+            <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1"></script>
+        </head>
+        <body>
+            <canvas id="myChart" width="400" height="200"></canvas>
+            <script>
+                const ctx = document.getElementById('myChart').getContext('2d');
+                const data = {data};  // Here is the chart data from Rust
+                const config = {{
+                    type: 'line',
+                    data: data,
+                    options: {{
+                      plugins: {{
+                        zoom: {{
+                          pan: {{
+                              enabled: true,
+                              mode: 'xy',
+                            }},
+                          zoom: {{
+                            
+                            wheel: {{
+                              enabled: true,
+                            }},
+                            pinch: {{
+                              enabled: true,
+                            }},
+                            mode: 'xy',
+                          }}
+                        }}
+                      }}
+                    }}  
+                }};
+                new Chart(ctx, config);
+            </script>
+        </body>
+    </html>
+    "#, data = data);
+
+    Ok(HttpResponse::Ok().content_type("text/html").body(html))
+}
+
 
 
 pub async fn index(data: web::Data<AppStateWithCounter>) -> Result<HttpResponse> {

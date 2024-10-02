@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::time::Instant;
 
 use crate::{prices::PriceValueTrait, MarketItem};
 
@@ -34,67 +33,42 @@ impl MetricResult {
         format!("{} (processed in {} µs)", result_str, self.duration_micros)
     }
 }
+pub struct TotalSold;
+pub struct TotalVolume;
+pub struct AveragePrice;
 
 
 pub trait MetricCalculation {
-    fn calculate(&self, items: &HashMap<String, MarketItem>) -> MetricResult;
+    fn calculate(&self, items: &HashMap<String, MarketItem>) -> MetricValue;
 }
 
 
-
-
-
-pub struct TotalSold;
-
 impl MetricCalculation for TotalSold {
-    fn calculate(&self, items: &HashMap<String, MarketItem>) -> MetricResult {
-        let start_time = Instant::now(); // Замеряем начало
-
+    fn calculate(&self, items: &HashMap<String, MarketItem>) -> MetricValue {
         let total_sold: u64 = items.iter()
             .map(|(_, item)| item.analyzes_result.as_ref().map_or(0, |r| r.total_sold))
             .sum();
 
-        let duration_micros = start_time.elapsed().as_micros(); // Замеряем конец
-
-        MetricResult {
-            result: MetricValue::TotalSold(total_sold),
-            duration_micros,
-        }
+        MetricValue::TotalSold(total_sold)
     }
 }
 
-pub struct AveragePrice;
 
 impl MetricCalculation for AveragePrice {
-    fn calculate(&self, items: &HashMap<String, MarketItem>) -> MetricResult {
-        let start_time = Instant::now();
-
+    fn calculate(&self, items: &HashMap<String, MarketItem>) -> MetricValue {
         let total_items = items.len() as f64;
         let total_price: f64 = items.iter().map(|(_, item)| item.price.to_usd()).sum();
         let avg_price = if total_items > 0.0 { total_price / total_items } else { 0.0 };
 
-        let duration_micros = start_time.elapsed().as_micros();
-
-        MetricResult {
-            result: MetricValue::AveragePrice(avg_price),
-            duration_micros,
-        }
+        MetricValue::AveragePrice(avg_price)
     }
 }
 
-pub struct TotalVolume;
 
 impl MetricCalculation for TotalVolume {
-    fn calculate(&self, items: &HashMap<String, MarketItem>) -> MetricResult {
-        let start_time = Instant::now();
-
+    fn calculate(&self, items: &HashMap<String, MarketItem>) -> MetricValue {
         let total_volume: f64 = items.iter().map(|(_, item)| item.analyzes_result.as_ref().map_or(0.0, |r| r.total_volume)).sum();
 
-        let duration_micros = start_time.elapsed().as_micros();
-
-        MetricResult {
-            result: MetricValue::TotalVolume(total_volume),
-            duration_micros,
-        }
+        MetricValue::TotalVolume(total_volume)
     }
 }

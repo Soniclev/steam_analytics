@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, time::Instant};
 
 use crate::MarketItem;
 
@@ -21,7 +21,15 @@ impl MetricProcessor {
 
     pub fn process(&self, items: &HashMap<String, MarketItem>) -> Vec<MetricResult> {
         self.metrics.iter()
-            .map(|(_, metric)| metric.calculate(items))
+            .map(|(_, metric)| {
+                let start_time = Instant::now();
+                let value = metric.calculate(items);
+                let duration_micros = start_time.elapsed().as_micros();
+                MetricResult {
+                    result: value,
+                    duration_micros,
+                }
+    })
             .collect()
     }
 }
