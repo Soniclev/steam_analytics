@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use crate::{prices::PriceValueTrait, MarketItem};
 
 
+#[derive(Clone, PartialEq)]
 pub enum MetricType {
     TotalSold,
     TotalVolume,
@@ -11,6 +12,7 @@ pub enum MetricType {
 
 
 pub struct MetricResult {
+    pub kind: MetricType,
     pub result: MetricValue,
     pub duration_micros: u128, 
 }

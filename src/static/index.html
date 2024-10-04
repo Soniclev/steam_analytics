@@ -1,0 +1,36 @@
+<html lang="en">
+    <head>
+        <title>Steam Community Market :: Listings for Wings of Incandescent Liturgy</title>
+    </head>
+    <body>  
+        <h1>List of items from Steam Community Market</h1>
+
+        <div id="global-stats"></div>
+        <div id="items-list"></div>
+        
+        <!-- load items list-->
+        <script>
+            function formatItem(item) {
+                return `<a href="/static/item.html?app_id=${item.app_id}&market_name=${encodeURIComponent(item.name)}">${item.app_id} - ${item.name} ${item.price / 100} USD (${item.analyzes_result.total_sold.toLocaleString()} sold | ${item.analyzes_result.total_volume.toLocaleString()} USD volume)</a>`;
+            }
+
+            function formatGlobalStats(stats) {
+                return `Total items: ${stats.total_items.toLocaleString()}<br>
+                    Total sold: ${stats.total_sold.toLocaleString()}<br>
+                    Total volume: ${stats.total_volume.toLocaleString()}<br>                    
+                    Average price: ${stats.avg_price.toLocaleString()} USD`;
+            }
+
+            fetch('/api/items')
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    const itemsList = document.getElementById('items-list');
+                    itemsList.innerHTML = data.items.map(item => `<p>${formatItem(item)}</p>`).join('\n');
+
+                    const globalStats = document.getElementById('global-stats');
+                    globalStats.innerHTML = formatGlobalStats(data.global_stats);
+                });
+        </script>
+    </body>
+</html>

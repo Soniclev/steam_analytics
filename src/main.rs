@@ -1,6 +1,7 @@
-use actix_web::{web, App, HttpServer};
+use actix_web::{web, App, HttpServer};  
 use chrono::{DateTime, Utc};
 use prices::PriceValue;
+use serde::Serialize;
 use std::{
     collections::HashMap,
     sync::Mutex,
@@ -14,6 +15,8 @@ mod mocked;
 mod steam_analyzer;
 mod webui;
 
+
+#[derive(Serialize, Clone)]
 struct MarketItem {
     app_id: u64,
     name: String,
@@ -47,10 +50,14 @@ async fn main() -> std::io::Result<()> {
             .app_data(counter.clone()) // <- register the created data
             .route("/", web::get().to(webui::index))
             .route("/chart", web::get().to(webui::chart_handler))
+            .route("/api/items", web::get().to(webui::items_api_handler))
+            .route("/api/item/{app_id}/{market_name}", web::get().to(webui::item_detail_api_handler))
+            .route("/api/import", web::post().to(webui::import_handler))
             .service(
                 web::resource("/item/{app_id}/{market_name}")
                     .route(web::get().to(webui::market_item_detail)),
             )
+            .service(web::resource("/static/{filename}").route(web::get().to(webui::static_handler))) // serve static files
         // ;
     })
     .bind(("127.0.0.1", 8080))?

@@ -43,7 +43,7 @@ pub fn import_item(page: &String, current_datetime: DateTime<Utc>) -> Option<Mar
                             .as_ref()
                             .unwrap()
                             .get_price_by_percentile(DESIRED_PERCENTILE)
-                            .unwrap()
+                            .unwrap_or_else(|| PriceValue::from_usd_f64(0.0))
                     } else {
                         PriceValue::from_usd_f64(0.0)
                     }

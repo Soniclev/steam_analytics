@@ -21,11 +21,12 @@ impl MetricProcessor {
 
     pub fn process(&self, items: &HashMap<String, MarketItem>) -> Vec<MetricResult> {
         self.metrics.iter()
-            .map(|(_, metric)| {
+            .map(|(kind, metric)| {
                 let start_time = Instant::now();
                 let value = metric.calculate(items);
                 let duration_micros = start_time.elapsed().as_micros();
                 MetricResult {
+                    kind: kind.clone(),
                     result: value,
                     duration_micros,
                 }

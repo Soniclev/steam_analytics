@@ -1,0 +1,39 @@
+<html lang="en">
+    <head>
+        <title>Steam Community Market :: Listings for Wings of Incandescent Liturgy</title>
+    </head>
+    <body>  
+        <h1 id="item-name"></h1>
+
+        <div id="item-content"></div>
+        
+        <script>
+            // extract app_id and market_name from the URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const app_id = urlParams.get('app_id');
+            const market_name = urlParams.get('market_name');
+
+            document.getElementById('item-name').innerText = `${app_id} - ${market_name}`;
+
+            function formatItem(item) {
+                return `
+                    <div>
+                        <h2>${item.name}</h2>
+                        <p>Price: ${item.price / 100.0} USD</p>
+                        <p>Updated at: ${item.updated_at}</p>
+                        <p>Analyzes result: ${JSON.stringify(item.analyzes_result)}</p>
+                    </div>
+                `;
+            }
+
+            fetch('/api/item/' + app_id + '/' + market_name)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    const itemContent = document.getElementById('item-content');
+                    itemContent.innerHTML = formatItem(data.item);
+                });
+ 
+        </script>
+    </body>
+</html>
