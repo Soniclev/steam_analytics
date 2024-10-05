@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use regex::Regex;
 use lazy_static::lazy_static;
 
-use crate::{consts::DESIRED_PERCENTILE, prices::{PriceValue, PriceValueTrait}, steam_analyzer::analyze_steam_sell_history, MarketItem};
+use crate::{consts::DESIRED_PERCENTILE, prices::{PriceValue, PriceValueTrait}, steam_analyzer::{analyze_steam_sell_history, extract_sell_history}, MarketItem};
 
 
 lazy_static! {
@@ -36,6 +36,7 @@ pub fn import_item(page: &String, current_datetime: DateTime<Utc>) -> Option<Mar
                 app_id: app_id.unwrap(),
                 name: market_name.as_str().replace("&amp;", "&").to_string(),
                 updated_at: current_datetime,
+                history: extract_sell_history(&page).into_iter().map(|(date, price, amount)| (date, PriceValue::from_usd_f64(price), amount)).collect(),
                 analyzes_result: analysis_result.clone(),
                 price: {
                     if analysis_result.is_some() {

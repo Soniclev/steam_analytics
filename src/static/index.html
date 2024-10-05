@@ -1,11 +1,16 @@
+<!DOCTYPE html>
 <html lang="en">
     <head>
         <title>Steam Community Market :: Listings for Wings of Incandescent Liturgy</title>
+        <meta charset="utf-8">
     </head>
     <body>  
         <h1>List of items from Steam Community Market</h1>
 
+        <div id="telemetry"></div>
+        <hr>
         <div id="global-stats"></div>
+        <hr>
         <div id="items-list"></div>
         
         <!-- load items list-->
@@ -15,16 +20,23 @@
             }
 
             function formatGlobalStats(stats) {
-                return `Total items: ${stats.total_items.toLocaleString()}<br>
-                    Total sold: ${stats.total_sold.toLocaleString()}<br>
-                    Total volume: ${stats.total_volume.toLocaleString()}<br>                    
-                    Average price: ${stats.avg_price.toLocaleString()} USD`;
+                let result = `Total items: ${stats.total_items.toLocaleString()}<br>`;
+                // sort metrics by key
+                stats.metrics = Object.fromEntries(Object.entries(stats.metrics).sort((a, b) => a[0].localeCompare(b[0])));
+                for (const [key, value] of Object.entries(stats.metrics)) {
+                    let first_key = Object.keys(value.result)[0];
+                    result += `${key}: ${value.result[first_key].toLocaleString()}  (${value.duration_micros} µs)<br>`;
+                }
+                return result;
             }
 
             fetch('/api/items')
                 .then(response => response.json())
                 .then(data => {
                     console.log(data);
+
+                    const telemetry = document.getElementById('telemetry');
+                    telemetry.innerHTML = `Response generation duration: ${data.response_generation_duration} µs<br>`;
                     const itemsList = document.getElementById('items-list');
                     itemsList.innerHTML = data.items.map(item => `<p>${formatItem(item)}</p>`).join('\n');
 

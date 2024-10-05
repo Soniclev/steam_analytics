@@ -24,6 +24,7 @@ struct MarketItem {
 
     updated_at: DateTime<Utc>,
 
+    history: Vec<(DateTime<Utc>, PriceValue, i32)>,
     analyzes_result: Option<steam_analyzer::AnalysisResult>,
 }
 
@@ -48,15 +49,10 @@ async fn main() -> std::io::Result<()> {
         // move counter into the closure
         App::new()
             .app_data(counter.clone()) // <- register the created data
-            .route("/", web::get().to(webui::index))
-            .route("/chart", web::get().to(webui::chart_handler))
+            .service(web::redirect("/", "/static/index.html"))
             .route("/api/items", web::get().to(webui::items_api_handler))
             .route("/api/item/{app_id}/{market_name}", web::get().to(webui::item_detail_api_handler))
             .route("/api/import", web::post().to(webui::import_handler))
-            .service(
-                web::resource("/item/{app_id}/{market_name}")
-                    .route(web::get().to(webui::market_item_detail)),
-            )
             .service(web::resource("/static/{filename}").route(web::get().to(webui::static_handler))) // serve static files
         // ;
     })
