@@ -44,6 +44,7 @@ async fn main() -> std::io::Result<()> {
     });
 
     mocked::import_items_from_folder(&counter, "./src/mocked");
+    println!("Imported {} items", counter.items.lock().unwrap().len());
 
     HttpServer::new(move || {
         // move counter into the closure

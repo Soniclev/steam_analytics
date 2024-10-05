@@ -1,27 +1,33 @@
 <html lang="en">
-    <head>
-        <title>Steam Community Market :: Listings for Wings of Incandescent Liturgy</title>
-        <meta charset="utf-8">
-    </head>
-    <body>  
-        <h1 id="item-name"></h1>
 
-        <div id="telemetry"></div>
-        <hr>
-        <div id="item-metrics"></div>
-        <hr>
-        <div id="item-content"></div>
-        
-        <script>
-            // extract app_id and market_name from the URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const app_id = urlParams.get('app_id');
-            const market_name = urlParams.get('market_name');
+<head>
+    <title>Steam Community Market :: Listings for Wings of Incandescent Liturgy</title>
+    <meta charset="utf-8">
+    <!-- Load plotly.js into the DOM -->
+    <script src='https://cdn.plot.ly/plotly-2.35.2.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js'></script>
+</head>
 
-            document.getElementById('item-name').innerText = `${app_id} - ${market_name}`;
+<body>
+    <h1 id="item-name"></h1>
 
-            function formatItem(item) {
-                return `
+    <div id="telemetry"></div>
+    <hr>
+    <div id="item-metrics"></div>
+    <hr>
+    <div id="myDiv"></div>
+    <div id="item-content"></div>
+
+    <script>
+        // extract app_id and market_name from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const app_id = urlParams.get('app_id');
+        const market_name = urlParams.get('market_name');
+
+        document.getElementById('item-name').innerText = `${app_id} - ${market_name}`;
+
+        function formatItem(item) {
+            return `
                     <div>
                         <h2>${item.name}</h2>
                         <p>Price: ${item.price / 100.0} USD</p>
@@ -29,32 +35,114 @@
                         <p>Analyzes result: ${JSON.stringify(item.analyzes_result)}</p>
                     </div>
                 `;
-            }
+        }
 
-            function formatItemStats(stats) {
-                let result = ``;
-                // sort metrics by key
-                stats = Object.fromEntries(Object.entries(stats).sort((a, b) => a[0].localeCompare(b[0])));
-                for (const [key, value] of Object.entries(stats)) {
-                    let first_key = Object.keys(value.result)[0];
-                    result += `${key}: ${value.result[first_key].toLocaleString()}  (${value.duration_micros} µs)<br>`;
+        function formatItemStats(stats) {
+            let result = ``;
+            // sort metrics by key
+            stats = Object.fromEntries(Object.entries(stats).sort((a, b) => a[0].localeCompare(b[0])));
+            for (const [key, value] of Object.entries(stats)) {
+                let first_key = Object.keys(value.result)[0];
+                result += `${key}: ${value.result[first_key].toLocaleString()}  (${value.duration_micros} µs)<br>`;
+            }
+            return result;
+        }
+
+        fetch('/api/item/' + app_id + '/' + market_name)
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+
+                const telemetry = document.getElementById('telemetry');
+                telemetry.innerHTML = `Response generation duration: ${data.response_generation_duration} µs<br>`;
+                const itemMetrics = document.getElementById('item-metrics');
+                itemMetrics.innerHTML = formatItemStats(data.item_metrics);
+                const itemContent = document.getElementById('item-content');
+                itemContent.innerHTML = formatItem(data.item);
+
+                var trace1 = {
+                    type: "scatter",
+                    mode: "lines",
+                    name: 'Price in USD',
+                    x: data.item.history.map(x => x[0]),
+                    y: data.item.history.map(x => x[1] / 100.0),
+                    // green like on Steam community market
+                    line: { color: '#7D6D00' },
                 }
-                return result;
-            }
 
-            fetch('/api/item/' + app_id + '/' + market_name)
-                .then(response => response.json())
-                .then(data => {
-                    console.log(data);
+                var trace2 = {
+                    type: "bar",
+                    // mode: "lines",
+                    name: 'Amount',
+                    width: 1000 * 60 * 60 * 24,  // 24 hours in milliseconds
+                    zorder: -1,
+                    x: data.item.history.map(x => x[0]),
+                    y: data.item.history.map(x => x[2]),
+                    yaxis: 'y2',
+                    line: { color: '#FF7F50' }
+                }
 
-                    const telemetry = document.getElementById('telemetry');
-                    telemetry.innerHTML = `Response generation duration: ${data.response_generation_duration} µs<br>`;
-                    const itemMetrics = document.getElementById('item-metrics');
-                    itemMetrics.innerHTML = formatItemStats(data.item_metrics);
-                    const itemContent = document.getElementById('item-content');
-                    itemContent.innerHTML = formatItem(data.item);
-                });
- 
-        </script>
-    </body>
+                var plt_data = [trace1, trace2];
+
+                var layout = {
+                    title: 'Time Series with Rangeslider',
+                    xaxis: {
+                        autorange: true,
+                        // range: ['2015-02-17', '2017-02-16'],
+                        rangeselector: {
+                            buttons: [
+                                {
+                                    count: 1,
+                                    label: '1m',
+                                    step: 'month',
+                                    stepmode: 'backward'
+                                },
+                                {
+                                    count: 6,
+                                    label: '6m',
+                                    step: 'month',
+                                    stepmode: 'backward'
+                                },
+                                {
+                                    count: 1,
+                                    label: '1y',
+                                    step: 'year',
+                                    stepmode: 'backward'
+                                },
+                                {
+                                    count: 5,
+                                    label: '5y',
+                                    step: 'year',
+                                    stepmode: 'backward'
+                                },
+                                { step: 'all' }
+                            ]
+                        },
+                        // rangeslider: { range: ['2015-02-17', '2017-02-16'] },
+                        type: 'date'
+                    },
+                    yaxis: {
+                        autorange: true,
+                        // range: [86.8700008333, 138.870004167],
+                        type: 'linear'
+                    },
+                    yaxis2: {
+                        autorange: true,
+                        type: 'linear',
+                        overlaying: 'y',
+                        side: 'right'
+                    },
+                    barmode: 'group',
+                    bargap: 0.15,
+                };
+
+                Plotly.newPlot('myDiv', plt_data, layout);
+
+            });
+
+
+
+    </script>
+</body>
+
 </html>
