@@ -53,6 +53,7 @@ async fn main() -> std::io::Result<()> {
             .service(web::redirect("/", "/static/index.html"))
             .route("/api/items", web::get().to(webui::items_api_handler))
             .route("/api/item/{app_id}/{market_name}", web::get().to(webui::item_detail_api_handler))
+            .route("/api/events", web::get().to(webui::events_api_handler))
             .route("/api/import", web::post().to(webui::import_handler))
             .service(web::resource("/static/{filename}").route(web::get().to(webui::static_handler))) // serve static files
         // ;

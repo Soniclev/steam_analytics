@@ -14,6 +14,7 @@ use crate::compute::traits::GlobalMetricResult;
 use crate::compute::traits::GlobalMetricType;
 use crate::compute::traits::TotalSold;
 use crate::compute::traits::TotalVolume;
+use crate::consts::EVENTS;
 use crate::import::import_item;
 use crate::MarketItem;
 
@@ -93,6 +94,7 @@ pub async fn static_handler(path: web::Path<String>) -> HttpResponse {
 #[derive(Serialize)]
 struct ItemApiResponse {
     item: MarketItem,
+    events: Vec<(String, String, String)>,
     item_metrics: HashMap<String, ItemMetricResult>,
     response_generation_duration: u128,
 }
@@ -118,9 +120,29 @@ pub async fn item_detail_api_handler(
 
     let obj = ItemApiResponse {
         item: item.clone(),
+        events: EVENTS.iter().map(|(start, end, name)| (start.to_string(), end.to_string(), name.to_string())).collect(),
         item_metrics: results.into_iter().map(|r| (r.kind.to_string(), r)).collect(),
         response_generation_duration: resp_gen_started.elapsed().as_micros(),
     };
 
     Ok(web::Json(obj))
+}
+
+#[derive(Serialize)]
+struct EventsApiResponse {
+    events: Vec<(String, String, String)>,
+}
+
+
+pub async fn events_api_handler(
+    // data: web::Data<AppStateWithCounter>,
+    // params: web::Path<(u64, String)>,
+) -> Result<impl Responder> {
+    // let events = vec![
+    //         ("2018-12-06 00:00".to_string(), "2018-12-06 23:59".to_string(), "CS 2 Release".to_string()),
+    //         ("2023-09-27 00:00".to_string(), "2023-09-27 23:59".to_string(), "CS 2 Release".to_string()),
+    //     ];
+    return Ok(web::Json(EventsApiResponse {
+        events: EVENTS.iter().map(|(start, end, name)| (start.to_string(), end.to_string(), name.to_string())).collect(),
+    }));
 }
