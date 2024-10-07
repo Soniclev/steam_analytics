@@ -1,5 +1,6 @@
 use actix_web::{web, App, HttpServer};  
 use chrono::{DateTime, Utc};
+use compute::item_metrics::{ItemMetricType, ItemMetricValue};
 use prices::PriceValue;
 use serde::Serialize;
 use std::{
@@ -26,6 +27,9 @@ struct MarketItem {
 
     history: Vec<(DateTime<Utc>, PriceValue, i32)>,
     analyzes_result: Option<steam_analyzer::AnalysisResult>,
+
+    // metrics
+    metrics: HashMap<ItemMetricType, ItemMetricValue>,
 }
 
 struct AppStateWithCounter {

@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use chrono::{DateTime, Utc};
 use regex::Regex;
 use lazy_static::lazy_static;
@@ -49,6 +51,8 @@ pub fn import_item(page: &String, current_datetime: DateTime<Utc>) -> Option<Mar
                         PriceValue::from_usd_f64(0.0)
                     }
                 },
+
+                metrics: HashMap::new(),
             });
         }
     }

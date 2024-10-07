@@ -7,7 +7,7 @@ use crate::{import::import_item, AppStateWithCounter};
 
 
 
-pub fn import_items_from_folder(counter: &web::Data<AppStateWithCounter>, folder_path: &str) {
+pub fn import_items_from_folder(app_data: &web::Data<AppStateWithCounter>, folder_path: &str) {
     // load mocked data from folder ./mocked
     // list all files in the folder
     let mut files = fs::read_dir(folder_path).unwrap();
@@ -22,7 +22,7 @@ pub fn import_items_from_folder(counter: &web::Data<AppStateWithCounter>, folder
                 let date = Utc.timestamp_millis_opt(file_saved_at.try_into().unwrap()).unwrap();
                 let item = import_item(&file, date);
                 if let Some(item) = item {
-                    let mut items = counter.items.lock().unwrap();
+                    let mut items = app_data.items.lock().unwrap();
                     items.insert(item.name.clone(), item);
                 }
             }

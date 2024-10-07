@@ -6,14 +6,8 @@ use chrono::Utc;
 use serde::Serialize;
 
 use crate::compute::item_metrics::ItemMetricResult;
-use crate::compute::item_metrics::ItemMetricType;
-use crate::compute::item_metrics::ItemTotalSold;
 use crate::compute::processor::MetricProcessor;
-use crate::compute::traits::AveragePrice;
 use crate::compute::traits::GlobalMetricResult;
-use crate::compute::traits::GlobalMetricType;
-use crate::compute::traits::TotalSold;
-use crate::compute::traits::TotalVolume;
 use crate::consts::EVENTS;
 use crate::import::import_item;
 use crate::MarketItem;
@@ -50,11 +44,7 @@ pub async fn items_api_handler(data: web::Data<AppStateWithCounter>) -> Result<i
     let items = data.items.lock().unwrap();
     let total_items = items.len();
 
-    let mut processor = MetricProcessor::new();
-    processor.add_global_metric(GlobalMetricType::TotalSold, Box::new(TotalSold));
-    processor.add_global_metric(GlobalMetricType::AveragePrice, Box::new(AveragePrice));
-    processor.add_global_metric(GlobalMetricType::TotalVolume, Box::new(TotalVolume));
-
+    let processor = MetricProcessor::new();
     let results = processor.process_global(&items);
 
     let obj = ItemsApiResponse {
@@ -105,18 +95,16 @@ pub async fn item_detail_api_handler(
 ) -> Result<impl Responder> {
     let resp_gen_started = Instant::now();
     let (app_id, market_name) = params.into_inner();
-    let items = data.items.lock().unwrap();
+    let mut items = data.items.lock().unwrap();
 
     if !items.contains_key(&market_name) {
         return Err(actix_web::error::ErrorNotFound(format!("Item {app_id} - {market_name} not found")));
     };
 
-    let item = items.get(&market_name).unwrap();
+    let mut item = items.get_mut(&market_name).unwrap();
 
-    let mut processor = MetricProcessor::new();
-    processor.add_item_metric(ItemMetricType::ItemTotalSold, Box::new(ItemTotalSold));
-
-    let results = processor.process_item(item);
+    let processor = MetricProcessor::new();
+    let results = processor.process_item(&mut item);
 
     let obj = ItemApiResponse {
         item: item.clone(),
@@ -134,14 +122,7 @@ struct EventsApiResponse {
 }
 
 
-pub async fn events_api_handler(
-    // data: web::Data<AppStateWithCounter>,
-    // params: web::Path<(u64, String)>,
-) -> Result<impl Responder> {
-    // let events = vec![
-    //         ("2018-12-06 00:00".to_string(), "2018-12-06 23:59".to_string(), "CS 2 Release".to_string()),
-    //         ("2023-09-27 00:00".to_string(), "2023-09-27 23:59".to_string(), "CS 2 Release".to_string()),
-    //     ];
+pub async fn events_api_handler() -> Result<impl Responder> {
     return Ok(web::Json(EventsApiResponse {
         events: EVENTS.iter().map(|(start, end, name)| (start.to_string(), end.to_string(), name.to_string())).collect(),
     }));
