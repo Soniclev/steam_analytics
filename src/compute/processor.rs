@@ -28,6 +28,18 @@ impl MetricProcessor {
                     GlobalMetricType::TotalVolume,
                     Box::new(global_metrics::TotalVolume),
                 ),
+                (
+                    GlobalMetricType::SteamEstimatedFee,
+                    Box::new(global_metrics::SteamEstimatedFee),
+                ),
+                (
+                    GlobalMetricType::GameEstimatedFee,
+                    Box::new(global_metrics::GameEstimatedFee),
+                ),
+                (
+                    GlobalMetricType::ValveEstimatedFee,
+                    Box::new(global_metrics::ValveEstimatedFee),
+                ),
             ],
             item_metrics: vec![
                 (
@@ -35,22 +47,34 @@ impl MetricProcessor {
                     Box::new(item_metrics::ItemTotalSold),
                 ),
                 (
-                    ItemMetricType::SteamEstimatedFee,
-                    Box::new(item_metrics::SteamEstimatedFee),
+                    ItemMetricType::ItemTotalVolume,
+                    Box::new(item_metrics::ItemTotalVolume),
                 ),
                 (
-                    ItemMetricType::GameEstimatedFee,
-                    Box::new(item_metrics::GameEstimatedFee),
+                    ItemMetricType::ItemSteamEstimatedFee,
+                    Box::new(item_metrics::ItemSteamEstimatedFee),
                 ),
                 (
-                    ItemMetricType::ValveEstimatedFee,
-                    Box::new(item_metrics::ValveEstimatedFee),
+                    ItemMetricType::ItemGameEstimatedFee,
+                    Box::new(item_metrics::ItemGameEstimatedFee),
+                ),
+                (
+                    ItemMetricType::ItemValveEstimatedFee,
+                    Box::new(item_metrics::ItemValveEstimatedFee),
                 ),
             ],
         }
     }
 
-    pub fn process_global(&self, items: &HashMap<String, MarketItem>) -> Vec<GlobalMetricResult> {
+    pub fn process_global(
+        &self,
+        items: &mut HashMap<String, MarketItem>,
+    ) -> Vec<GlobalMetricResult> {
+        // first pass to calculate all item metrics
+        for (_, item) in items.iter_mut() {
+            self.process_item(item);
+        }
+
         self.global_metrics
             .iter()
             .map(|(kind, metric)| {

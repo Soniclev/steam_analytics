@@ -42,11 +42,11 @@ pub async fn items_api_handler(data: web::Data<AppStateWithCounter>) -> Result<i
     *counter += 1; // <- access counter inside MutexGuard
 
     // list all items
-    let items = data.items.lock().unwrap();
+    let mut items = data.items.lock().unwrap();
     let total_items = items.len();
 
     let processor = MetricProcessor::new();
-    let results = processor.process_global(&items);
+    let results = processor.process_global(&mut items);
 
     let obj = ItemsApiResponse {
         total_items: (total_items as u64),

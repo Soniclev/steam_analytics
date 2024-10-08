@@ -9,18 +9,20 @@ use crate::{
 #[derive(Clone, PartialEq, Serialize, Hash, Eq)]
 pub enum ItemMetricType {
     ItemTotalSold,
-    SteamEstimatedFee,
-    GameEstimatedFee,
-    ValveEstimatedFee,
+    ItemTotalVolume,
+    ItemSteamEstimatedFee,
+    ItemGameEstimatedFee,
+    ItemValveEstimatedFee,
 }
 
 impl ToString for ItemMetricType {
     fn to_string(&self) -> String {
         match self {
             ItemMetricType::ItemTotalSold => "ItemTotalSold".to_string(),
-            ItemMetricType::SteamEstimatedFee => "SteamEstimatedFee".to_string(),
-            ItemMetricType::GameEstimatedFee => "GameEstimatedFee".to_string(),
-            ItemMetricType::ValveEstimatedFee => "ValveEstimatedFee".to_string(),
+            ItemMetricType::ItemTotalVolume => "ItemTotalVolume".to_string(),
+            ItemMetricType::ItemSteamEstimatedFee => "ItemSteamEstimatedFee".to_string(),
+            ItemMetricType::ItemGameEstimatedFee => "ItemGameEstimatedFee".to_string(),
+            ItemMetricType::ItemValveEstimatedFee => "ItemValveEstimatedFee".to_string(),
         }
     }
 }
@@ -35,6 +37,7 @@ pub struct ItemMetricResult {
 #[derive(Serialize, Clone)]
 pub enum ItemMetricValue {
     TotalSold(u64),
+    TotalVolume(f64),
     SteamEstimatedFee(f64),
     GameEstimatedFee(f64),
     ValveEstimatedFee(f64),
@@ -47,9 +50,10 @@ pub enum ItemMetricValue {
 // }
 
 pub struct ItemTotalSold;
-pub struct SteamEstimatedFee;
-pub struct GameEstimatedFee;
-pub struct ValveEstimatedFee;
+pub struct ItemTotalVolume;
+pub struct ItemSteamEstimatedFee;
+pub struct ItemGameEstimatedFee;
+pub struct ItemValveEstimatedFee;
 
 pub trait ItemMetricCalculation {
     fn calculate(&self, item: &MarketItem) -> ItemMetricValue;
@@ -67,7 +71,19 @@ impl ItemMetricCalculation for ItemTotalSold {
     }
 }
 
-impl ItemMetricCalculation for SteamEstimatedFee {
+impl ItemMetricCalculation for ItemTotalVolume {
+    fn calculate(&self, item: &MarketItem) -> ItemMetricValue {
+        let total_volume: u64 = item
+            .history
+            .iter()
+            .map(|(_, avg_price, amount)| avg_price * (*amount as u64))
+            .sum();
+
+        ItemMetricValue::TotalVolume(total_volume.to_usd())
+    }
+}
+
+impl ItemMetricCalculation for ItemSteamEstimatedFee {
     fn calculate(&self, item: &MarketItem) -> ItemMetricValue {
         let steam_fee: PriceValue = item
             .history
@@ -79,7 +95,7 @@ impl ItemMetricCalculation for SteamEstimatedFee {
     }
 }
 
-impl ItemMetricCalculation for GameEstimatedFee {
+impl ItemMetricCalculation for ItemGameEstimatedFee {
     fn calculate(&self, item: &MarketItem) -> ItemMetricValue {
         let game_fee: PriceValue = item
             .history
@@ -91,7 +107,7 @@ impl ItemMetricCalculation for GameEstimatedFee {
     }
 }
 
-impl ItemMetricCalculation for ValveEstimatedFee {
+impl ItemMetricCalculation for ItemValveEstimatedFee {
     fn calculate(&self, item: &MarketItem) -> ItemMetricValue {
         let steam_fee: PriceValue = item
             .history
