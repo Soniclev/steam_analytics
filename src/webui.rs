@@ -7,7 +7,7 @@ use serde::Serialize;
 
 use crate::compute::item_metrics::ItemMetricResult;
 use crate::compute::processor::MetricProcessor;
-use crate::compute::traits::GlobalMetricResult;
+use crate::compute::global_metrics::GlobalMetricResult;
 use crate::consts::EVENTS;
 use crate::import::import_item;
 use crate::MarketItem;

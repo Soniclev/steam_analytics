@@ -2,7 +2,7 @@ use std::{collections::HashMap, time::Instant};
 
 use crate::MarketItem;
 
-use super::{item_metrics::{self, ItemMetricCalculation, ItemMetricResult, ItemMetricType}, traits::{self, GlobalMetricResult, GlobalMetricType, MetricCalculation}};
+use super::{item_metrics::{self, ItemMetricCalculation, ItemMetricResult, ItemMetricType}, global_metrics::{self, GlobalMetricResult, GlobalMetricType, MetricCalculation}};
 
 pub struct MetricProcessor {
     global_metrics: Vec<(GlobalMetricType, Box<dyn MetricCalculation>)>,
@@ -13,9 +13,9 @@ impl MetricProcessor {
     pub fn new() -> Self {
         MetricProcessor {
             global_metrics: vec![
-                (GlobalMetricType::TotalSold, Box::new(traits::TotalSold)),
-                (GlobalMetricType::AveragePrice, Box::new(traits::AveragePrice)),
-                (GlobalMetricType::TotalVolume, Box::new(traits::TotalVolume)),
+                (GlobalMetricType::TotalSold, Box::new(global_metrics::TotalSold)),
+                (GlobalMetricType::AveragePrice, Box::new(global_metrics::AveragePrice)),
+                (GlobalMetricType::TotalVolume, Box::new(global_metrics::TotalVolume)),
             ],
             item_metrics: vec![
                 (ItemMetricType::ItemTotalSold, Box::new(item_metrics::ItemTotalSold)),
