@@ -286,6 +286,9 @@ mod tests {
             sold_per_week: Some(10),
             percentiles: vec![(25, 10), (50, 20), (75, 30)],
             percentiles_no_fee: vec![],
+            total_sold: 10,
+            total_volume: 100.0,
+            duration_micros: 0,
         };
 
         // Test for an existing percentile (50th percentile)
@@ -306,6 +309,9 @@ mod tests {
             sold_per_week: Some(10),
             percentiles: vec![(25, 10), (50, 20), (75, 30)],
             percentiles_no_fee: vec![],
+            total_sold: 10,
+            total_volume: 100.0,
+            duration_micros: 0,
         };
 
         // Test for a non-existing percentile (80th percentile)
@@ -325,6 +331,9 @@ mod tests {
             sold_per_week: Some(10),
             percentiles: vec![],
             percentiles_no_fee: vec![],
+            total_sold: 10,
+            total_volume: 100.0,
+            duration_micros: 0,
         };
 
         // Test for any percentile on an empty set
