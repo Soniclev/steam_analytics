@@ -37,9 +37,7 @@ lazy_static! {
     static ref SELL_HISTORY_REGEX: Regex = Regex::new(r#"\s+var line1=([^;]+);"#).unwrap();
 }
 
-pub fn extract_sell_history(
-    response: &str,
-) -> Vec<(DateTime<Utc>, f64, i32)> {
+pub fn extract_sell_history(response: &str) -> Vec<(DateTime<Utc>, f64, i32)> {
     if let Some(caps) = SELL_HISTORY_REGEX.captures(response) {
         if let Ok(encoded_data) = caps[1].parse::<String>() {
             if let Ok(j) = serde_json::from_str::<Vec<Point>>(&encoded_data) {
@@ -47,7 +45,7 @@ pub fn extract_sell_history(
 
                 // reservse points for each hour (30 days)
                 // and for each day (10 years)
-                result.reserve_exact(30 * 24 + 365 * 10); 
+                result.reserve_exact(30 * 24 + 365 * 10);
 
                 for point in j.into_iter().rev() {
                     let date = steam_date_str_to_datetime(&point.date);
@@ -72,10 +70,10 @@ pub fn analyze_steam_sell_history(
     let days = 7;
     let date_range_start = current_datetime - Duration::days(days);
     let history_data = extract_sell_history(response);
-    
+
     let total_sold = history_data.iter().map(|x| x.2 as u64).sum::<u64>();
     let total_volume: f64 = history_data.iter().map(|x| x.1 * (x.2 as f64)).sum::<f64>();
-    
+
     let filtered_data: Vec<_> = history_data
         .into_iter()
         .filter(|&(date, _, _)| date_range_start <= date && date <= current_datetime)
@@ -116,8 +114,6 @@ pub fn analyze_steam_sell_history(
     let upper_limit = median * MEDIAN_UPPER_LIMIT_COEF;
     let lower_limit = median * MEDIAN_LOWER_LIMIT_COEF;
 
-    
-
     let mut prices: Vec<_> = filtered_data
         .into_iter()
         .map(|x| x.1)
@@ -136,7 +132,7 @@ pub fn analyze_steam_sell_history(
             // new fields
             total_sold,
             total_volume,
-            
+
             // performance
             duration_micros: start.elapsed().as_micros(),
         });

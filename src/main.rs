@@ -1,21 +1,17 @@
-use actix_web::{web, App, HttpServer};  
+use actix_web::{web, App, HttpServer};
 use chrono::{DateTime, Utc};
 use compute::item_metrics::{ItemMetricType, ItemMetricValue};
 use prices::PriceValue;
 use serde::Serialize;
-use std::{
-    collections::HashMap,
-    sync::Mutex,
-};
+use std::{collections::HashMap, sync::Mutex};
 
 mod compute;
 mod consts;
 mod import;
-mod prices;
 mod mocked;
+mod prices;
 mod steam_analyzer;
 mod webui;
-
 
 #[derive(Serialize, Clone)]
 struct MarketItem {
@@ -38,7 +34,6 @@ struct AppStateWithCounter {
     items: Mutex<HashMap<String, MarketItem>>,
 }
 
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     // Note: web::Data created _outside_ HttpServer::new closure
@@ -56,11 +51,16 @@ async fn main() -> std::io::Result<()> {
             .app_data(counter.clone()) // <- register the created data
             .service(web::redirect("/", "/static/index.html"))
             .route("/api/items", web::get().to(webui::items_api_handler))
-            .route("/api/item/{app_id}/{market_name}", web::get().to(webui::item_detail_api_handler))
+            .route(
+                "/api/item/{app_id}/{market_name}",
+                web::get().to(webui::item_detail_api_handler),
+            )
             .route("/api/events", web::get().to(webui::events_api_handler))
             .route("/api/import", web::post().to(webui::import_handler))
-            .service(web::resource("/static/{filename}").route(web::get().to(webui::static_handler))) // serve static files
-        // ;
+            .service(
+                web::resource("/static/{filename}").route(web::get().to(webui::static_handler)),
+            ) // serve static files
+              // ;
     })
     .bind(("127.0.0.1", 8080))?
     .run()

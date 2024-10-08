@@ -5,8 +5,6 @@ use chrono::{TimeZone, Utc};
 
 use crate::{import::import_item, AppStateWithCounter};
 
-
-
 pub fn import_items_from_folder(app_data: &web::Data<AppStateWithCounter>, folder_path: &str) {
     // load mocked data from folder ./mocked
     // list all files in the folder
@@ -18,8 +16,18 @@ pub fn import_items_from_folder(app_data: &web::Data<AppStateWithCounter>, folde
             let file_name = path.file_name().unwrap().to_str().unwrap();
             if file_name.ends_with(".html") {
                 let file = fs::read_to_string(path.clone()).unwrap();
-                let file_saved_at = path.clone().metadata().unwrap().modified().unwrap().duration_since(UNIX_EPOCH).unwrap().as_millis();
-                let date = Utc.timestamp_millis_opt(file_saved_at.try_into().unwrap()).unwrap();
+                let file_saved_at = path
+                    .clone()
+                    .metadata()
+                    .unwrap()
+                    .modified()
+                    .unwrap()
+                    .duration_since(UNIX_EPOCH)
+                    .unwrap()
+                    .as_millis();
+                let date = Utc
+                    .timestamp_millis_opt(file_saved_at.try_into().unwrap())
+                    .unwrap();
                 let item = import_item(&file, date);
                 if let Some(item) = item {
                     let mut items = app_data.items.lock().unwrap();
