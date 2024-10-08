@@ -26,11 +26,12 @@ macro_rules! define_event_duration {
     };
 }
 
-pub const EVENTS: [(&str, &str, &str); 16] = [
+pub const EVENTS: [(&str, &str, &str); 17] = [
     define_event!(
         "2024-10-03",
         "The Armory and full 7-day tradeban for market/trading"
     ),
+    define_event!("2024-02-07", "Kilowatt Case, Flexible stickers placement"),
     define_event!("2023-09-27", "CS 2 Release"),
     define_event!("2023-03-22", "CS 2 Anouncement"),
     define_event!("2021-06-03", "CS:GO prime became only buyable"),

@@ -62,6 +62,10 @@ impl MetricProcessor {
                     ItemMetricType::ItemValveEstimatedFee,
                     Box::new(item_metrics::ItemValveEstimatedFee),
                 ),
+                (
+                    ItemMetricType::ItemPopularityScore,
+                    Box::new(item_metrics::ItemPopularityScore),
+                ),
             ],
         }
     }

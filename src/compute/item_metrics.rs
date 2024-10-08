@@ -1,3 +1,4 @@
+use chrono::{Duration, Utc};
 use serde::Serialize;
 
 use crate::{
@@ -13,16 +14,18 @@ pub enum ItemMetricType {
     ItemSteamEstimatedFee,
     ItemGameEstimatedFee,
     ItemValveEstimatedFee,
+    ItemPopularityScore,
 }
 
 impl ToString for ItemMetricType {
     fn to_string(&self) -> String {
         match self {
-            ItemMetricType::ItemTotalSold => "ItemTotalSold".to_string(),
-            ItemMetricType::ItemTotalVolume => "ItemTotalVolume".to_string(),
-            ItemMetricType::ItemSteamEstimatedFee => "ItemSteamEstimatedFee".to_string(),
-            ItemMetricType::ItemGameEstimatedFee => "ItemGameEstimatedFee".to_string(),
-            ItemMetricType::ItemValveEstimatedFee => "ItemValveEstimatedFee".to_string(),
+            ItemMetricType::ItemTotalSold => "TotalSold".to_string(),
+            ItemMetricType::ItemTotalVolume => "TotalVolume".to_string(),
+            ItemMetricType::ItemSteamEstimatedFee => "SteamEstimatedFee".to_string(),
+            ItemMetricType::ItemGameEstimatedFee => "GameEstimatedFee".to_string(),
+            ItemMetricType::ItemValveEstimatedFee => "ValveEstimatedFee".to_string(),
+            ItemMetricType::ItemPopularityScore => "PopularityScore".to_string(),
         }
     }
 }
@@ -43,48 +46,57 @@ pub enum ItemMetricValue {
     ValveEstimatedFee(f64),
 }
 
-// #[derive(Serialize, Clone)]
-// pub enum CachedItemMetricValue {
-//     NotComputed,
-//     Computed(ItemMetricValue),
-// }
+macro_rules! define_metric {
+    ($metric_name:ident, $calc_body:expr, $result_type:expr) => {
+        pub struct $metric_name;
 
-pub struct ItemTotalSold;
-pub struct ItemTotalVolume;
-pub struct ItemSteamEstimatedFee;
-pub struct ItemGameEstimatedFee;
-pub struct ItemValveEstimatedFee;
+        impl ItemMetricCalculation for $metric_name {
+            fn calculate(&self, item: &MarketItem) -> ItemMetricValue {
+                $calc_body(item)
+            }
+        }
+
+        // impl ToString for $metric_name {
+        //     fn to_string(&self) -> String {
+        //         stringify!($metric_name).to_string()
+        //     }
+        // }
+    };
+}
 
 pub trait ItemMetricCalculation {
     fn calculate(&self, item: &MarketItem) -> ItemMetricValue;
 }
 
-impl ItemMetricCalculation for ItemTotalSold {
-    fn calculate(&self, item: &MarketItem) -> ItemMetricValue {
+define_metric!(
+    ItemTotalSold,
+    |item: &MarketItem| {
         let total_sold: u64 = item
             .history
             .iter()
-            .map(|(_, _, amount)| amount.clone() as u64)
+            .map(|(_, _, amount)| *amount as u64)
             .sum();
-
         ItemMetricValue::TotalSold(total_sold)
-    }
-}
+    },
+    ItemMetricType::ItemTotalSold
+);
 
-impl ItemMetricCalculation for ItemTotalVolume {
-    fn calculate(&self, item: &MarketItem) -> ItemMetricValue {
+define_metric!(
+    ItemTotalVolume,
+    |item: &MarketItem| {
         let total_volume: u64 = item
             .history
             .iter()
             .map(|(_, avg_price, amount)| avg_price * (*amount as u64))
             .sum();
+        ItemMetricValue::TotalVolume(total_volume as f64) // Assuming price is converted
+    },
+    ItemMetricType::ItemTotalVolume
+);
 
-        ItemMetricValue::TotalVolume(total_volume.to_usd())
-    }
-}
-
-impl ItemMetricCalculation for ItemSteamEstimatedFee {
-    fn calculate(&self, item: &MarketItem) -> ItemMetricValue {
+define_metric!(
+    ItemSteamEstimatedFee,
+    |item: &MarketItem| {
         let steam_fee: PriceValue = item
             .history
             .iter()
@@ -92,11 +104,13 @@ impl ItemMetricCalculation for ItemSteamEstimatedFee {
             .sum();
 
         ItemMetricValue::SteamEstimatedFee(steam_fee.to_usd())
-    }
-}
+    },
+    ItemMetricType::ItemSteamEstimatedFee
+);
 
-impl ItemMetricCalculation for ItemGameEstimatedFee {
-    fn calculate(&self, item: &MarketItem) -> ItemMetricValue {
+define_metric!(
+    ItemGameEstimatedFee,
+    |item: &MarketItem| {
         let game_fee: PriceValue = item
             .history
             .iter()
@@ -104,11 +118,13 @@ impl ItemMetricCalculation for ItemGameEstimatedFee {
             .sum();
 
         ItemMetricValue::GameEstimatedFee(game_fee.to_usd())
-    }
-}
+    },
+    ItemMetricType::ItemGameEstimatedFee
+);
 
-impl ItemMetricCalculation for ItemValveEstimatedFee {
-    fn calculate(&self, item: &MarketItem) -> ItemMetricValue {
+define_metric!(
+    ItemValveEstimatedFee,
+    |item: &MarketItem| {
         let steam_fee: PriceValue = item
             .history
             .iter()
@@ -127,5 +143,33 @@ impl ItemMetricCalculation for ItemValveEstimatedFee {
         let valve_fee = steam_fee + game_fee;
 
         ItemMetricValue::ValveEstimatedFee(valve_fee.to_usd())
-    }
-}
+    },
+    ItemMetricType::ItemValveEstimatedFee
+);
+
+define_metric!(
+    ItemPopularityScore,
+    |item: &MarketItem| {
+        let total_sold: u64 = item
+            .history
+            .iter()
+            // filter only items that are sold last 365 days
+            .filter(|(date, _, _)| {
+                *date >= Utc::now().checked_sub_signed(Duration::days(365)).unwrap()
+            })
+            .map(|(_, _, amount)| *amount as u64)
+            .sum();
+        // let total_volume: u64 = item
+        //     .history
+        //     .iter()
+        //     // filter only items that are sold last 365 days
+        //     .filter(|(date, _, _)| *date >= Utc::now().checked_sub_signed(Duration::days(365)).unwrap())
+        //     .map(|(_, avg_price, amount)| avg_price * (*amount as u64))
+        //     .sum();
+
+        let popularity_score = (total_sold as f64).sqrt();
+        // let popularity_score = (total_sold as f64).log10() * (total_volume as f64).log10();
+        ItemMetricValue::TotalVolume(popularity_score)
+    },
+    ItemMetricType::ItemPopularityScore
+);
