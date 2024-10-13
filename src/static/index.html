@@ -94,7 +94,18 @@
                     telemetry.innerHTML = `Response generation duration: ${data.response_generation_duration} µs<br>`;
                     
                     const itemsList = document.querySelector('#items-list tbody');
-                    itemsList.innerHTML = data.items.map(item => formatItem(item)).join('\n');
+                    itemsList.innerHTML = data.items.sort((a, b) => {
+                        let a_volume = 0;
+                        let b_volume = 0;
+
+                        if (a.metrics.length > 0) {
+                            a_volume = a.metrics.find(m => Object.keys(m)[0] === 'TotalVolume')["TotalVolume"];
+                        }
+                        if (b.metrics.length > 0) {
+                            b_volume = b.metrics.find(m => Object.keys(m)[0] === 'TotalVolume')["TotalVolume"];
+                        }
+                        return b_volume - a_volume;
+                    }).map(item => formatItem(item)).join('\n');
 
                     const globalStats = document.getElementById('global-stats');
                     globalStats.innerHTML = formatGlobalStats(data.global_stats);
