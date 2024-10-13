@@ -29,14 +29,14 @@ impl ToString for GlobalMetricType {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct GlobalMetricResult {
     pub kind: GlobalMetricType,
     pub result: GlobalMetricValue,
     pub duration_micros: u128,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub enum GlobalMetricValue {
     TotalVolume(f64),
     TotalSold(u64),

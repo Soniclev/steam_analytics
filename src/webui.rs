@@ -42,42 +42,51 @@ pub async fn items_api_handler(data: web::Data<AppStateWithCounter>) -> Result<i
     *counter += 1; // <- access counter inside MutexGuard
 
     // list all items
-    let mut items = data.items.lock().unwrap();
-    let total_items = items.len();
+    let items = data.items.lock().unwrap();
+    // let total_items = items.len();
+    // let total_analyzed_items = items.iter().filter(|(_, item)| item.state == MarketItemState::Analyzed).count();
 
-    let processor = MetricProcessor::new();
-    let results = processor.process_global(&mut items);
+    // let processor = MetricProcessor::new();
+    // let results = processor.process_global(&items);
 
     let obj = ItemsApiResponse {
-        total_items: (total_items as u64),
-        global_stats: GlobalStats {
-            total_items: (total_items as u64),
-            metrics: results
-                .into_iter()
-                .map(|r| (r.kind.to_string(), r))
-                .collect(),
-        },
+        global_stats: data.global_stats.lock().unwrap().clone(),
+        // global_stats: GlobalStats {
+        //     total_items: (total_items as u64),
+        //     total_analyzed_items: (total_analyzed_items as u64),
+        //     metrics: results
+        //         .into_iter()
+        //         .map(|r| (r.kind.to_string(), r))
+        //         .collect(),
+        // },
         items: items.values().map(|item| MarketItemShort {
             app_id: item.app_id,
             name: item.name.clone(),
             price: item.price.clone(),
             updated_at: item.updated_at.clone(),
-            metrics: item.metrics.clone(),
+            metrics: item.metrics.iter().map(|(_, value)| value.clone()).collect(),
+            // metrics: item.metrics.clone(),
         }).collect(),
         response_generation_duration: resp_gen_started.elapsed().as_micros(),
     };
     Ok(web::Json(obj))
 }
 
-#[derive(Serialize)]
-struct GlobalStats {
-    metrics: HashMap<String, GlobalMetricResult>,
-    total_items: u64,
+#[derive(Serialize, Clone)]
+pub struct GlobalStats {
+    pub metrics: Vec<GlobalMetricResult>,
+    pub total_items: u64,
+    pub total_analyzed_items: u64,
+}
+impl GlobalStats {
+    pub(crate) fn new() -> Self {
+        Self { metrics: Vec::new(), total_items: 0, total_analyzed_items: 0 }
+    }
 }
 
 #[derive(Serialize)]
 struct ItemsApiResponse {
-    total_items: u64,
+    // total_items: u64,
     response_generation_duration: u128,
     global_stats: GlobalStats,
     items: Vec<MarketItemShort>,

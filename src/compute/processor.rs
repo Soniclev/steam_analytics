@@ -72,12 +72,12 @@ impl MetricProcessor {
 
     pub fn process_global(
         &self,
-        items: &mut HashMap<String, MarketItem>,
+        items: &HashMap<String, MarketItem>,
     ) -> Vec<GlobalMetricResult> {
         // first pass to calculate all item metrics
-        for (_, item) in items.iter_mut() {
-            self.process_item(item);
-        }
+        // for (_, item) in items.iter_mut() {
+        //     self.process_item(item);
+        // }
 
         self.global_metrics
             .iter()

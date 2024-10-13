@@ -8,7 +8,7 @@ use crate::{
     consts::DESIRED_PERCENTILE,
     prices::{PriceValue, PriceValueTrait},
     steam_analyzer::{analyze_steam_sell_history, extract_sell_history},
-    MarketItem,
+    MarketItem, MarketItemState,
 };
 
 lazy_static! {
@@ -61,6 +61,7 @@ pub fn import_item(page: &String, current_datetime: DateTime<Utc>) -> Option<Mar
                 },
 
                 metrics: HashMap::new(),
+                state: MarketItemState::NotAnalyzed,
             });
         }
     }

@@ -21,11 +21,12 @@
 
             function formatGlobalStats(stats) {
                 let result = `Total items: ${stats.total_items.toLocaleString()}<br>`;
+                result += `Total analyzed items: ${stats.total_analyzed_items.toLocaleString()}<br>`;
                 // sort metrics by key
                 stats.metrics = Object.fromEntries(Object.entries(stats.metrics).sort((a, b) => a[0].localeCompare(b[0])));
                 for (const [key, value] of Object.entries(stats.metrics)) {
                     let first_key = Object.keys(value.result)[0];
-                    result += `${key}: ${value.result[first_key].toLocaleString()}  (${value.duration_micros} µs)<br>`;
+                    result += `${first_key}: ${value.result[first_key].toLocaleString()}  (${value.duration_micros} µs)<br>`;
                 }
                 return result;
             }
