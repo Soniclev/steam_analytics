@@ -38,34 +38,17 @@ pub async fn import_handler(
 
 pub async fn items_api_handler(data: web::Data<AppStateWithCounter>) -> Result<impl Responder> {
     let resp_gen_started = Instant::now();
-    //let mut counter = data.counter.lock().unwrap(); // <- get counter's MutexGuard
-    //*counter += 1; // <- access counter inside MutexGuard
 
     // list all items
     let items = data.items.lock().unwrap();
-    // let total_items = items.len();
-    // let total_analyzed_items = items.iter().filter(|(_, item)| item.state == MarketItemState::Analyzed).count();
-
-    // let processor = MetricProcessor::new();
-    // let results = processor.process_global(&items);
-
     let obj = ItemsApiResponse {
         global_stats: data.global_stats.lock().unwrap().clone(),
-        // global_stats: GlobalStats {
-        //     total_items: (total_items as u64),
-        //     total_analyzed_items: (total_analyzed_items as u64),
-        //     metrics: results
-        //         .into_iter()
-        //         .map(|r| (r.kind.to_string(), r))
-        //         .collect(),
-        // },
         items: items.values().map(|item| MarketItemShort {
             app_id: item.app_id,
             name: item.name.clone(),
             price: item.price.clone(),
             updated_at: item.updated_at.clone(),
             metrics: item.metrics.iter().map(|(_, value)| value.clone()).collect(),
-            // metrics: item.metrics.clone(),
         }).collect(),
         response_generation_duration: resp_gen_started.elapsed().as_micros(),
     };
@@ -86,7 +69,6 @@ impl GlobalStats {
 
 #[derive(Serialize)]
 struct ItemsApiResponse {
-    // total_items: u64,
     response_generation_duration: u128,
     global_stats: GlobalStats,
     items: Vec<MarketItemShort>,

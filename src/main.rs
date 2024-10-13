@@ -56,9 +56,6 @@ struct MarketItemShort {
 
     updated_at: DateTime<Utc>,
 
-    // history: Vec<(DateTime<Utc>, PriceValue, i32)>,
-    // analyzes_result: Option<steam_analyzer::AnalysisResult>,
-
     // metrics
     metrics: Vec<ItemMetricValue>,}
 

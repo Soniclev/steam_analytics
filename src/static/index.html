@@ -3,6 +3,27 @@
     <head>
         <title>Steam Community Market :: Listings for Wings of Incandescent Liturgy</title>
         <meta charset="utf-8">
+
+        <style>
+            table {
+                border-collapse: collapse;
+                width: 100%;
+            }
+            
+            th, td {
+                text-align: right;
+                padding: 8px;
+            }
+            
+            tr:nth-child(even) {
+                background-color: #f2f2f2;
+            }
+            
+            th {
+                background-color: #4CAF50;
+                color: white;
+            }
+        </style>
     </head>
     <body>  
         <h1>List of items from Steam Community Market</h1>
@@ -11,13 +32,46 @@
         <hr>
         <div id="global-stats"></div>
         <hr>
-        <div id="items-list"></div>
+        <table id="items-list">
+            <thead>
+                <tr>
+                    <th>App ID</th>
+                    <th>Name</th>
+                    <th>Price (USD)</th>
+                    <th>Sold</th>
+                    <th>Volume (USD)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Items will be inserted here dynamically -->
+            </tbody>
+        </table>
+        
         
         <!-- load items list-->
         <script>
             function formatItem(item) {
-                return `<a href="/static/item.html?app_id=${item.app_id}&market_name=${encodeURIComponent(item.name)}">${item.app_id} - ${item.name} ${item.price / 100} USD (${0} sold | ${0} USD volume)</a>`;
+                if (item.metrics.length === 0) {
+                    return `<tr>
+                    <td><a href="/static/item.html?app_id=${item.app_id}&market_name=${encodeURIComponent(item.name)}">${item.app_id}</a></td>
+                    <td><a href="/static/item.html?app_id=${item.app_id}&market_name=${encodeURIComponent(item.name)}">${item.name}</a></td>
+                    <td>${(item.price / 100).toFixed(2)} USD</td>
+                    <td>0</td>
+                    <td>0</td>
+                </tr>`;
+                }
+        
+                let total_sold = item.metrics.find(m => Object.keys(m)[0] === 'TotalSold')["TotalSold"];
+                let total_volume = item.metrics.find(m => Object.keys(m)[0] === 'TotalVolume')["TotalVolume"];
+                return `<tr>
+                <td><a href="/static/item.html?app_id=${item.app_id}&market_name=${encodeURIComponent(item.name)}">${item.app_id}</a></td>
+                <td><a href="/static/item.html?app_id=${item.app_id}&market_name=${encodeURIComponent(item.name)}">${item.name}</a></td>
+                <td>${(item.price / 100).toFixed(2)} USD</td>
+                <td>${total_sold}</td>
+                <td>${total_volume.toLocaleString()} USD</td>
+            </tr>`;
             }
+
 
             function formatGlobalStats(stats) {
                 let result = `Total items: ${stats.total_items.toLocaleString()}<br>`;
@@ -38,8 +92,9 @@
 
                     const telemetry = document.getElementById('telemetry');
                     telemetry.innerHTML = `Response generation duration: ${data.response_generation_duration} µs<br>`;
-                    const itemsList = document.getElementById('items-list');
-                    itemsList.innerHTML = data.items.map(item => `<p>${formatItem(item)}</p>`).join('\n');
+                    
+                    const itemsList = document.querySelector('#items-list tbody');
+                    itemsList.innerHTML = data.items.map(item => formatItem(item)).join('\n');
 
                     const globalStats = document.getElementById('global-stats');
                     globalStats.innerHTML = formatGlobalStats(data.global_stats);

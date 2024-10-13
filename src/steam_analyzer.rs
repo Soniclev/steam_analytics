@@ -67,7 +67,7 @@ pub fn analyze_steam_sell_history(
     current_datetime: DateTime<Utc>,
 ) -> Option<AnalysisResult> {
     let start = Instant::now();
-    let days = 7;
+    let days = 30 * 6;
     let date_range_start = current_datetime - Duration::days(days);
     let history_data = extract_sell_history(response);
 
