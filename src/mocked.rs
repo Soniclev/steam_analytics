@@ -39,13 +39,17 @@ pub async fn import_items_from_folder(app_data: &Arc<AppStateWithCounter>, folde
                 if let Some(item) = item {
                     {
                         let mut items = app_data.items.lock().unwrap();
-                    items.insert(item.name.clone(), item);
-                    imported += 1;
+
+                        let market_name = item.name.clone();
+                        items.insert(market_name.clone(), item);
+                        let mut items_to_process = app_data.items_to_process.lock().unwrap();
+                        items_to_process.push_back(market_name);
+                        imported += 1;
 
                     }
                     
                     // switch asyncio context
-                    if imported % 10 == 0 {
+                    if imported % 100 == 0 {
                         sleep(Duration::from_millis(1)).await;
                     }
                 }

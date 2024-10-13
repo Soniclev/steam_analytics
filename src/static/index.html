@@ -44,6 +44,37 @@
                     const globalStats = document.getElementById('global-stats');
                     globalStats.innerHTML = formatGlobalStats(data.global_stats);
                 });
+
+                // const { location } = window
+
+        const proto = location.protocol.startsWith('https') ? 'wss' : 'ws'
+        const wsUri = `${proto}://${location.host}/ws`
+
+        console.log('Connecting...')
+        socket = new WebSocket(wsUri)
+
+        socket.onopen = () => {
+            console.log('Connected')
+            socket.send('Hello')
+        }
+
+        socket.onmessage = (ev) => {
+            console.log('Received: ' + ev.data, 'message')
+            const metrics = JSON.parse(ev.data)
+            console.log(metrics);
+
+            const globalStats = document.getElementById('global-stats');
+            globalStats.innerHTML = formatGlobalStats(metrics);
+
+            new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
+                socket.send('Hello');
+            });
+        }
+
+        socket.onclose = () => {
+            console.log('Disconnected')
+          socket = null
+        }
         </script>
     </body>
 </html>

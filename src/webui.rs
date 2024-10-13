@@ -38,8 +38,8 @@ pub async fn import_handler(
 
 pub async fn items_api_handler(data: web::Data<AppStateWithCounter>) -> Result<impl Responder> {
     let resp_gen_started = Instant::now();
-    let mut counter = data.counter.lock().unwrap(); // <- get counter's MutexGuard
-    *counter += 1; // <- access counter inside MutexGuard
+    //let mut counter = data.counter.lock().unwrap(); // <- get counter's MutexGuard
+    //*counter += 1; // <- access counter inside MutexGuard
 
     // list all items
     let items = data.items.lock().unwrap();
