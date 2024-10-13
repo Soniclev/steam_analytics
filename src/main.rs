@@ -44,11 +44,7 @@ struct MarketItemShort {
 }
 
 struct AppStateWithCounter {
-    cccccccc
-        cc
-        dsdfdsfds
-
-
+    counter: Mutex<i32>, // <- Mutex is necessary to mutate safely across threads
     items: Mutex<HashMap<String, MarketItem>>,
 }
 
