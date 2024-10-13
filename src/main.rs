@@ -28,8 +28,26 @@ struct MarketItem {
     metrics: HashMap<ItemMetricType, ItemMetricValue>,
 }
 
+#[derive(Serialize, Clone)]
+struct MarketItemShort {
+    app_id: u64,
+    name: String,
+    price: PriceValue,
+
+    updated_at: DateTime<Utc>,
+
+    // history: Vec<(DateTime<Utc>, PriceValue, i32)>,
+    // analyzes_result: Option<steam_analyzer::AnalysisResult>,
+
+    // metrics
+    metrics: HashMap<ItemMetricType, ItemMetricValue>,
+}
+
 struct AppStateWithCounter {
-    counter: Mutex<i32>, // <- Mutex is necessary to mutate safely across threads
+    cccccccc
+        cc
+        dsdfdsfds
+
 
     items: Mutex<HashMap<String, MarketItem>>,
 }

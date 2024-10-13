@@ -10,7 +10,7 @@ use crate::compute::item_metrics::ItemMetricResult;
 use crate::compute::processor::MetricProcessor;
 use crate::consts::EVENTS;
 use crate::import::import_item;
-use crate::MarketItem;
+use crate::{MarketItem, MarketItemShort};
 
 use super::AppStateWithCounter;
 
@@ -57,7 +57,13 @@ pub async fn items_api_handler(data: web::Data<AppStateWithCounter>) -> Result<i
                 .map(|r| (r.kind.to_string(), r))
                 .collect(),
         },
-        items: items.clone().into_values().collect(),
+        items: items.values().map(|item| MarketItemShort {
+            app_id: item.app_id,
+            name: item.name.clone(),
+            price: item.price.clone(),
+            updated_at: item.updated_at.clone(),
+            metrics: item.metrics.clone(),
+        }).collect(),
         response_generation_duration: resp_gen_started.elapsed().as_micros(),
     };
     Ok(web::Json(obj))
@@ -74,7 +80,7 @@ struct ItemsApiResponse {
     total_items: u64,
     response_generation_duration: u128,
     global_stats: GlobalStats,
-    items: Vec<MarketItem>,
+    items: Vec<MarketItemShort>,
 }
 
 pub async fn static_handler(path: web::Path<String>) -> HttpResponse {

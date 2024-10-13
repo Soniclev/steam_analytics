@@ -9,7 +9,15 @@ pub fn import_items_from_folder(app_data: &web::Data<AppStateWithCounter>, folde
     // load mocked data from folder ./mocked
     // list all files in the folder
     let mut files = fs::read_dir(folder_path).unwrap();
+    let mut items = app_data.items.lock().unwrap();
     while let Some(entry) = files.next() {
+        #[cfg(debug_assertions)]
+        const MAX_ITEMS: usize = 25;
+        #[cfg(not(debug_assertions))]
+        const MAX_ITEMS: usize = 30000;
+        if items.len() >= MAX_ITEMS {
+            break;
+        }
         let entry = entry.unwrap();
         let path = entry.path();
         if path.is_file() {
@@ -30,7 +38,6 @@ pub fn import_items_from_folder(app_data: &web::Data<AppStateWithCounter>, folde
                     .unwrap();
                 let item = import_item(&file, date);
                 if let Some(item) = item {
-                    let mut items = app_data.items.lock().unwrap();
                     items.insert(item.name.clone(), item);
                 }
             }
