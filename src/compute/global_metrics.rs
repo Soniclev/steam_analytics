@@ -2,9 +2,9 @@ use std::collections::HashMap;
 
 use serde::Serialize;
 
-use crate::{compute::item_metrics::ItemMetricValue, prices::PriceValueTrait, MarketItem};
+use crate::{compute::item_metrics::ItemMetricValue, game::cs2::ItemCategory, prices::PriceValueTrait, webui::ItemCategoryStats, MarketItem, MarketItemState};
 
-use super::item_metrics;
+use super::item_metrics::{self};
 
 #[derive(Clone, PartialEq, Serialize)]
 pub enum GlobalMetricType {
@@ -14,6 +14,7 @@ pub enum GlobalMetricType {
     SteamEstimatedFee,
     GameEstimatedFee,
     ValveEstimatedFee,
+    Test,
 }
 
 impl ToString for GlobalMetricType {
@@ -25,6 +26,7 @@ impl ToString for GlobalMetricType {
             GlobalMetricType::SteamEstimatedFee => "SteamEstimatedFee".to_string(),
             GlobalMetricType::GameEstimatedFee => "GameEstimatedFee".to_string(),
             GlobalMetricType::ValveEstimatedFee => "ValveEstimatedFee".to_string(),
+            GlobalMetricType::Test => "Test".to_string(),
         }
     }
 }
@@ -44,6 +46,7 @@ pub enum GlobalMetricValue {
     SteamEstimatedFee(f64),
     GameEstimatedFee(f64),
     ValveEstimatedFee(f64),
+    Test(HashMap<String, ItemCategoryStats>),
 }
 
 pub struct TotalSold;
@@ -52,6 +55,8 @@ pub struct AveragePrice;
 pub struct SteamEstimatedFee;
 pub struct GameEstimatedFee;
 pub struct ValveEstimatedFee;
+
+pub struct Test;
 
 pub trait MetricCalculation {
     fn calculate(&self, items: &HashMap<String, MarketItem>) -> GlobalMetricValue;
@@ -157,5 +162,37 @@ impl MetricCalculation for ValveEstimatedFee {
             .sum();
 
         GlobalMetricValue::ValveEstimatedFee(valve_fee)
+    }
+}
+
+impl MetricCalculation for Test {
+    fn calculate(&self, items: &HashMap<String, MarketItem>) -> GlobalMetricValue {
+        let mut result: HashMap<ItemCategory, ItemCategoryStats> = HashMap::new();
+
+        for (_, item) in items.iter() {
+            let category = item.determine_item_category.clone();
+
+            if !result.contains_key(&category) {
+                result.insert(category.clone(), ItemCategoryStats { total_items: 0, total_analyzed_items: 0, total_sold: 0, total_volume: 0.0 });
+            }
+
+            let value = result.get_mut(&category).unwrap();
+            value.total_items += 1;
+
+            match item.state {
+                MarketItemState::Analyzed => {
+                    value.total_analyzed_items += 1;
+    
+                    item.metrics.iter()
+                        .for_each(|(_, metric)| match metric {
+                            ItemMetricValue::TotalSold(sold) => value.total_sold += sold.clone(),
+                            ItemMetricValue::TotalVolume(volume) => value.total_volume += volume.clone(),
+                            _ => {},
+                        });
+                },
+                _ => {},
+            };
+        }
+        GlobalMetricValue::Test(result.into_iter().map(|(k, v)| (k.to_string(), v)).collect())
     }
 }

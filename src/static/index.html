@@ -4,6 +4,10 @@
         <title>Steam Community Market :: Listings for Wings of Incandescent Liturgy</title>
         <meta charset="utf-8">
 
+         <!-- Load plotly.js into the DOM -->
+    <script src='https://cdn.plot.ly/plotly-2.35.2.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js'></script>
+
         <style>
             table {
                 border-collapse: collapse;
@@ -31,6 +35,8 @@
         <div id="telemetry"></div>
         <hr>
         <div id="global-stats"></div>
+        <hr>
+        <div id="myDiv"></div>
         <hr>
         <table id="items-list">
             <thead>
@@ -83,6 +89,9 @@
                 stats.metrics = Object.fromEntries(Object.entries(stats.metrics).sort((a, b) => a[0].localeCompare(b[0])));
                 for (const [key, value] of Object.entries(stats.metrics)) {
                     let first_key = Object.keys(value.result)[0];
+                    if (first_key === 'Test') {
+                        continue                    
+                    }
                     result += `${first_key}: ${value.result[first_key].toLocaleString()}  (${value.duration_micros} µs)<br>`;
                 }
                 return result;
@@ -138,6 +147,8 @@
             const globalStats = document.getElementById('global-stats');
             globalStats.innerHTML = formatGlobalStats(metrics);
 
+            updateCategoriesPlot(metrics);
+
             new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
                 socket.send('Hello');
             });
@@ -146,6 +157,40 @@
         socket.onclose = () => {
             console.log('Disconnected')
           socket = null
+        }
+
+        function updateCategoriesPlot(metrics) {
+
+            // data: {"metrics":[{"kind":"TotalSold","result":{"TotalSold":321174311},"duration_micros":21},{"kind":"AveragePrice","result":{"AveragePrice":47.702287499999976},"duration_micros":22},{"kind":"TotalVolume","result":{"TotalVolume":427116584.3549999},"duration_micros":10},{"kind":"SteamEstimatedFee","result":{"SteamEstimatedFee":42597655.959999934},"duration_micros":189},{"kind":"GameEstimatedFee","result":{"GameEstimatedFee":21291732.049999993},"duration_micros":46},{"kind":"ValveEstimatedFee","result":{"ValveEstimatedFee":63889388.01000003},"duration_micros":39},{"kind":"Test","result":{"Test":{"stiletto knife":{"total_items":9,"total_analyzed_items":9},"talon knife":{"total_items":7,"total_analyzed_items":7},"Pin":{"total_items":5,"total_analyzed_items":5},"huntsman knife":{"total_items":7,"total_analyzed_items":7},"Sticker":{"total_items":496,"total_analyzed_items":496},"specialist gloves":{"total_items":6,"total_analyzed_items":6},"mac-10":{"total_items":30,"total_analyzed_items":30},"m249":{"total_items":14,"total_analyzed_items":14},"karambit":{"total_items":8,"total_analyzed_items":8},"gut knife":{"total_items":10,"total_analyzed_items":10},"sg 553":{"total_items":16,"total_analyzed_items":16},"ak-47":{"total_items":26,"total_analyzed_items":26},"scar-20":{"total_items":19,"total_analyzed_items":19},"ssg 08":{"total_items":18,"total_analyzed_items":18},"Patch":{"total_items":8,"total_analyzed_items":8},"tec-9":{"total_items":18,"total_analyzed_items":18},"navaja knife":{"total_items":12,"total_analyzed_items":12},"desert eagle":{"total_items":16,"total_analyzed_items":16},"zeus x27":{"total_items":1,"total_analyzed_items":1},"survival knife":{"total_items":7,"total_analyzed_items":7},"MusicKit":{"total_items":9,"total_analyzed_items":9},"dual berettas":{"total_items":30,"total_analyzed_items":30},"broken fang gloves":{"total_items":3,"total_analyzed_items":3},"hand wraps":{"total_items":3,"total_analyzed_items":3},"nomad knife":{"total_items":3,"total_analyzed_items":3},"driver gloves":{"total_items":3,"total_analyzed_items":3},"PatchPack":{"total_items":2,"total_analyzed_items":2},"nova":{"total_items":19,"total_analyzed_items":19},"famas":{"total_items":17,"total_analyzed_items":17},"falchion knife":{"total_items":9,"total_analyzed_items":9},"five-seven":{"total_items":14,"total_analyzed_items":14},"p2000":{"total_items":24,"total_analyzed_items":24},"usp-s":{"total_items":19,"total_analyzed_items":19},"classic knife":{"total_items":16,"total_analyzed_items":16},"glock":{"total_items":26,"total_analyzed_items":26},"p90":{"total_items":24,"total_analyzed_items":24},"Gift":{"total_items":1,"total_analyzed_items":1},"bloodhound gloves":{"total_items":2,"total_analyzed_items":2},"skeleton knife":{"total_items":4,"total_analyzed_items":4},"bowie knife":{"total_items":12,"total_analyzed_items":12},"m4a4":{"total_items":34,"total_analyzed_items":34},"r8 revolver":{"total_items":14,"total_analyzed_items":14},"ump":{"total_items":26,"total_analyzed_items":26},"Key":{"total_items":1,"total_analyzed_items":1},"mp7":{"total_items":20,"total_analyzed_items":20},"bayonet":{"total_items":25,"total_analyzed_items":25},"Package":{"total_items":15,"total_analyzed_items":15},"mp5-sd":{"total_items":6,"total_analyzed_items":6},"mp9":{"total_items":18,"total_analyzed_items":18},"p250":{"total_items":18,"total_analyzed_items":18},"shadow daggers":{"total_items":15,"total_analyzed_items":15},"Pass":{"total_items":3,"total_analyzed_items":3},"Agent":{"total_items":8,"total_analyzed_items":8},"sport gloves":{"total_items":2,"total_analyzed_items":2},"paracord knife":{"total_items":6,"total_analyzed_items":6},"aug":{"total_items":27,"total_analyzed_items":27},"hydra gloves":{"total_items":2,"total_analyzed_items":2},"xm1014":{"total_items":23,"total_analyzed_items":23},"g3":{"total_items":22,"total_analyzed_items":22},"flip knife":{"total_items":14,"total_analyzed_items":14},"m4a1-s":{"total_items":17,"total_analyzed_items":17},"galil":{"total_items":24,"total_analyzed_items":24},"AutographCapsule":{"total_items":4,"total_analyzed_items":4},"pp-bizon":{"total_items":22,"total_analyzed_items":22},"kukri knife":{"total_items":3,"total_analyzed_items":3},"awp":{"total_items":21,"total_analyzed_items":21},"butterfly knife":{"total_items":9,"total_analyzed_items":9},"moto gloves":{"total_items":5,"total_analyzed_items":5},"Case":{"total_items":8,"total_analyzed_items":8},"ursus knife":{"total_items":10,"total_analyzed_items":10},"negev":{"total_items":19,"total_analyzed_items":19},"cz75-auto":{"total_items":19,"total_analyzed_items":19},"sawed-off":{"total_items":17,"total_analyzed_items":17},"Graffiti":{"total_items":131,"total_analyzed_items":131},"mag-7":{"total_items":19,"total_analyzed_items":19}}},"duration_micros":196}],"total_items":1600,"total_analyzed_items":1600}
+
+            console.log(metrics);
+
+            let idx = 0;
+
+            for (const [key, value] of Object.entries(metrics.metrics)) {
+                    let first_key = Object.keys(value.result)[0];
+                    if (first_key === 'Test') {
+                        idx =      key;               
+                    }
+                }
+
+            let test_metric = metrics.metrics[idx].result.Test;
+
+            var data = [{
+                title: "Total items by category",
+              type: "pie",
+              values: Object.values(test_metric).map(v => v.total_volume),
+              labels: Object.keys(test_metric),
+              textinfo: "label+percent",
+              insidetextorientation: "radial"
+            }]
+
+            var layout = [{
+              height: 700,
+              width: 700
+            }]
+
+            Plotly.newPlot('myDiv', data, layout)
         }
         </script>
     </body>

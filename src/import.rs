@@ -3,7 +3,6 @@ use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 use lazy_static::lazy_static;
 use regex::Regex;
-use serde::de;
 
 use crate::{
     consts::DESIRED_PERCENTILE, game::cs2::determine_item_category, prices::{PriceValue, PriceValueTrait}, steam_analyzer::{analyze_steam_sell_history, extract_sell_history}, MarketItem, MarketItemState

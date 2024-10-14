@@ -40,6 +40,10 @@ impl MetricProcessor {
                     GlobalMetricType::ValveEstimatedFee,
                     Box::new(global_metrics::ValveEstimatedFee),
                 ),
+                (
+                    GlobalMetricType::Test,
+                    Box::new(global_metrics::Test),
+                )
             ],
             item_metrics: vec![
                 (

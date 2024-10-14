@@ -68,10 +68,21 @@ impl GlobalStats {
     }
 }
 
+
+#[derive(Serialize, Clone, Copy, PartialEq)]
+pub struct ItemCategoryStats {
+    pub total_items: u64,
+    pub total_analyzed_items: u64,
+    pub total_sold: u64,
+    pub total_volume: f64,
+}
+
+
 #[derive(Serialize)]
 struct ItemsApiResponse {
     response_generation_duration: u128,
     global_stats: GlobalStats,
+    // cs2_categories: HashMap<ItemCategory, ItemCategoryStats>,
     items: Vec<MarketItemShort>,
 }
 
