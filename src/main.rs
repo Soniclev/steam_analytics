@@ -9,6 +9,7 @@ use compute::{
     processor::MetricProcessor,
 };
 use futures::StreamExt as _;
+use game::cs2::ItemCategory;
 use prices::PriceValue;
 use serde::Serialize;
 use std::{
@@ -20,6 +21,7 @@ use webui::GlobalStats;
 
 mod compute;
 mod consts;
+mod game;
 mod import;
 mod mocked;
 mod prices;
@@ -37,6 +39,7 @@ struct MarketItem {
     app_id: u64,
     name: String,
     price: PriceValue,
+    determine_item_category: ItemCategory,
 
     updated_at: DateTime<Utc>,
 
@@ -53,6 +56,7 @@ struct MarketItemShort {
     app_id: u64,
     name: String,
     price: PriceValue,
+    determine_item_category: ItemCategory,
 
     updated_at: DateTime<Utc>,
 

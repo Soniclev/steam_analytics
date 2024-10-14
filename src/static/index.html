@@ -37,6 +37,7 @@
                 <tr>
                     <th>App ID</th>
                     <th>Name</th>
+                    <th>Category</th>
                     <th>Price (USD)</th>
                     <th>Sold</th>
                     <th>Volume (USD)</th>
@@ -55,6 +56,7 @@
                     return `<tr>
                     <td><a href="/static/item.html?app_id=${item.app_id}&market_name=${encodeURIComponent(item.name)}">${item.app_id}</a></td>
                     <td><a href="/static/item.html?app_id=${item.app_id}&market_name=${encodeURIComponent(item.name)}">${item.name}</a></td>
+                    <td>${JSON.stringify(item.determine_item_category)}</td>
                     <td>${(item.price / 100).toFixed(2)} USD</td>
                     <td>0</td>
                     <td>0</td>
@@ -66,6 +68,7 @@
                 return `<tr>
                 <td><a href="/static/item.html?app_id=${item.app_id}&market_name=${encodeURIComponent(item.name)}">${item.app_id}</a></td>
                 <td><a href="/static/item.html?app_id=${item.app_id}&market_name=${encodeURIComponent(item.name)}">${item.name}</a></td>
+                <td>${JSON.stringify(item.determine_item_category)}</td>
                 <td>${(item.price / 100).toFixed(2)} USD</td>
                 <td>${total_sold}</td>
                 <td>${total_volume.toLocaleString()} USD</td>
@@ -95,6 +98,9 @@
                     
                     const itemsList = document.querySelector('#items-list tbody');
                     itemsList.innerHTML = data.items.sort((a, b) => {
+                        if (b.determine_item_category == "Unknown") {
+                            return 10000000000;
+                        }
                         let a_volume = 0;
                         let b_volume = 0;
 

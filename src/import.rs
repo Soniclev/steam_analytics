@@ -3,12 +3,10 @@ use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 use lazy_static::lazy_static;
 use regex::Regex;
+use serde::de;
 
 use crate::{
-    consts::DESIRED_PERCENTILE,
-    prices::{PriceValue, PriceValueTrait},
-    steam_analyzer::{analyze_steam_sell_history, extract_sell_history},
-    MarketItem, MarketItemState,
+    consts::DESIRED_PERCENTILE, game::cs2::determine_item_category, prices::{PriceValue, PriceValueTrait}, steam_analyzer::{analyze_steam_sell_history, extract_sell_history}, MarketItem, MarketItemState
 };
 
 lazy_static! {
@@ -39,9 +37,11 @@ pub fn import_item(page: &String, current_datetime: DateTime<Utc>) -> Option<Mar
             // let current_datetime = Utc::now();
             let analysis_result = analyze_steam_sell_history(page, current_datetime);
 
+            let market_name_clean = market_name.as_str().replace("&amp;", "&").replace("%20", "").to_string();
+
             return Some(MarketItem {
                 app_id: app_id.unwrap(),
-                name: market_name.as_str().replace("&amp;", "&").to_string(),
+                name: market_name_clean.clone(),
                 updated_at: current_datetime,
                 history: extract_sell_history(&page)
                     .into_iter()
@@ -59,6 +59,8 @@ pub fn import_item(page: &String, current_datetime: DateTime<Utc>) -> Option<Mar
                         PriceValue::from_usd_f64(0.0)
                     }
                 },
+
+                determine_item_category: determine_item_category(&market_name_clean),
 
                 metrics: HashMap::new(),
                 state: MarketItemState::NotAnalyzed,
