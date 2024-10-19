@@ -41,8 +41,8 @@ impl MetricProcessor {
                     Box::new(global_metrics::ValveEstimatedFee),
                 ),
                 (
-                    GlobalMetricType::Test,
-                    Box::new(global_metrics::Test),
+                    GlobalMetricType::CS2TotalItemsByCategory,
+                    Box::new(global_metrics::CS2TotalItemsByCategory),
                 )
             ],
             item_metrics: vec![

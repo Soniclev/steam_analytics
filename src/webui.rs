@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::time::Instant;
 
 use actix_web::Responder;
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use serde::Serialize;
 
 use crate::compute::global_metrics::GlobalMetricResult;
@@ -69,14 +69,21 @@ impl GlobalStats {
 }
 
 
-#[derive(Serialize, Clone, Copy, PartialEq)]
+#[derive(Serialize, Clone, PartialEq)]
 pub struct ItemCategoryStats {
     pub total_items: u64,
     pub total_analyzed_items: u64,
     pub total_sold: u64,
     pub total_volume: f64,
+
+    pub sold_per_month: HashMap<DateTime<Utc>, u64>,
 }
 
+impl ItemCategoryStats {
+    pub fn new() -> Self {
+        Self { total_items: 0, total_analyzed_items: 0, total_sold: 0, total_volume: 0.0, sold_per_month: HashMap::new() }
+    }
+}
 
 #[derive(Serialize)]
 struct ItemsApiResponse {

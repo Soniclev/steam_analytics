@@ -14,7 +14,7 @@ pub enum GlobalMetricType {
     SteamEstimatedFee,
     GameEstimatedFee,
     ValveEstimatedFee,
-    Test,
+    CS2TotalItemsByCategory,
 }
 
 impl ToString for GlobalMetricType {
@@ -26,7 +26,7 @@ impl ToString for GlobalMetricType {
             GlobalMetricType::SteamEstimatedFee => "SteamEstimatedFee".to_string(),
             GlobalMetricType::GameEstimatedFee => "GameEstimatedFee".to_string(),
             GlobalMetricType::ValveEstimatedFee => "ValveEstimatedFee".to_string(),
-            GlobalMetricType::Test => "Test".to_string(),
+            GlobalMetricType::CS2TotalItemsByCategory => "CS2TotalItemsByCategory".to_string(),
         }
     }
 }
@@ -46,7 +46,7 @@ pub enum GlobalMetricValue {
     SteamEstimatedFee(f64),
     GameEstimatedFee(f64),
     ValveEstimatedFee(f64),
-    Test(HashMap<String, ItemCategoryStats>),
+    CS2TotalItemsByCategory(HashMap<String, ItemCategoryStats>),
 }
 
 pub struct TotalSold;
@@ -56,7 +56,7 @@ pub struct SteamEstimatedFee;
 pub struct GameEstimatedFee;
 pub struct ValveEstimatedFee;
 
-pub struct Test;
+pub struct CS2TotalItemsByCategory;
 
 pub trait MetricCalculation {
     fn calculate(&self, items: &HashMap<String, MarketItem>) -> GlobalMetricValue;
@@ -165,7 +165,7 @@ impl MetricCalculation for ValveEstimatedFee {
     }
 }
 
-impl MetricCalculation for Test {
+impl MetricCalculation for CS2TotalItemsByCategory {
     fn calculate(&self, items: &HashMap<String, MarketItem>) -> GlobalMetricValue {
         let mut result: HashMap<ItemCategory, ItemCategoryStats> = HashMap::new();
 
@@ -173,7 +173,7 @@ impl MetricCalculation for Test {
             let category = item.determine_item_category.clone();
 
             if !result.contains_key(&category) {
-                result.insert(category.clone(), ItemCategoryStats { total_items: 0, total_analyzed_items: 0, total_sold: 0, total_volume: 0.0 });
+                result.insert(category.clone(), ItemCategoryStats::new());
             }
 
             let value = result.get_mut(&category).unwrap();
@@ -189,10 +189,35 @@ impl MetricCalculation for Test {
                             ItemMetricValue::TotalVolume(volume) => value.total_volume += volume.clone(),
                             _ => {},
                         });
+
+                    // iterate over history and count sold per month
+                    let mut sold_per_month = HashMap::new();
+                    for (date, price, amount) in item.history.iter() {
+                        // let month = date.date().month();
+                        // let year = date.date().year();
+                        // let key = DateTime::from_utc(NaiveDate::from_ymd(year, month, 1).and_hms(0, 0, 0), Utc);
+                        if let Some(count) = sold_per_month.get(&date) {
+                            sold_per_month.insert(date, count + amount);
+                        }
+                        else {
+                            sold_per_month.insert(date, *amount);
+                        }
+                    }
+
+                    // sum up all sold per month
+                    for (dt, count) in sold_per_month.iter() {
+                        // upsert
+                        if value.sold_per_month.contains_key(dt) {
+                            value.sold_per_month.insert(*dt.clone(), value.sold_per_month.get(dt).unwrap() + (*count as u64));
+                        }
+                        else {
+                            value.sold_per_month.insert(*dt.clone(), *count as u64);
+                        }
+                    }
                 },
                 _ => {},
             };
         }
-        GlobalMetricValue::Test(result.into_iter().map(|(k, v)| (k.to_string(), v)).collect())
+        GlobalMetricValue::CS2TotalItemsByCategory(result.into_iter().map(|(k, v)| (k.to_string(), v)).collect())
     }
 }
