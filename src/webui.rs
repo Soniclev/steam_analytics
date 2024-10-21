@@ -5,7 +5,7 @@ use actix_web::Responder;
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 
-use crate::compute::global_metrics::GlobalMetricResult;
+use crate::compute::global_metrics::{GlobalMetricResult, GlobalMetricType, GlobalMetricValue};
 use crate::compute::item_metrics::ItemMetricResult;
 use crate::compute::processor::MetricProcessor;
 use crate::consts::EVENTS;
@@ -59,18 +59,26 @@ pub async fn items_api_handler(data: web::Data<AppStateWithCounter>) -> Result<i
 #[derive(Serialize, Clone)]
 pub struct GlobalStats {
     pub metrics: Vec<GlobalMetricResult>,
+    pub huge_metrics: Vec<GlobalMetricResult>,
     pub total_items: u64,
     pub total_analyzed_items: u64,
 }
+
 impl GlobalStats {
     pub(crate) fn new() -> Self {
-        Self { metrics: Vec::new(), total_items: 0, total_analyzed_items: 0 }
+        Self { metrics: Vec::new(), huge_metrics: Vec::new(), total_items: 0, total_analyzed_items: 0 }
+    }
+
+    pub fn to_lite(&self) -> GlobalStats {
+        // filter out metrics that we don't need
+        let metrics = self.metrics.iter().filter(|f| f.kind != GlobalMetricType::CS2TotalItemsByCategory).map(|f| f.clone()).collect();
+        GlobalStats { metrics, huge_metrics: self.huge_metrics.clone(), total_items: self.total_items, total_analyzed_items: self.total_analyzed_items }
     }
 }
 
 
 #[derive(Serialize, Clone, PartialEq)]
-pub struct ItemCategoryStats {
+pub struct ItemCategoryStatsFull {
     pub total_items: u64,
     pub total_analyzed_items: u64,
     pub total_sold: u64,
@@ -79,11 +87,12 @@ pub struct ItemCategoryStats {
     pub sold_per_month: HashMap<DateTime<Utc>, u64>,
 }
 
-impl ItemCategoryStats {
+impl ItemCategoryStatsFull {
     pub fn new() -> Self {
         Self { total_items: 0, total_analyzed_items: 0, total_sold: 0, total_volume: 0.0, sold_per_month: HashMap::new() }
     }
 }
+
 
 #[derive(Serialize)]
 struct ItemsApiResponse {
@@ -140,6 +149,23 @@ pub async fn item_detail_api_handler(
     };
 
     Ok(web::Json(obj))
+}
+
+#[derive(Serialize, Clone)]
+pub struct ChartsApiResponse {
+    global_stats: GlobalStats,
+}
+
+pub async fn charts_handler(data: web::Data<AppStateWithCounter>) -> Result<impl Responder> {
+    let global_stats = data.global_stats.lock().unwrap();
+
+
+    Ok(web::Json(
+        ChartsApiResponse {
+            global_stats: global_stats.clone()
+        }
+)
+)
 }
 
 #[derive(Serialize)]

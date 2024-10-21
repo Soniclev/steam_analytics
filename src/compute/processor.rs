@@ -78,13 +78,26 @@ impl MetricProcessor {
         &self,
         items: &HashMap<String, MarketItem>,
     ) -> Vec<GlobalMetricResult> {
-        // first pass to calculate all item metrics
-        // for (_, item) in items.iter_mut() {
-        //     self.process_item(item);
-        // }
-
         self.global_metrics
             .iter()
+            .filter(|(_kind, metric)| !metric.is_huge())
+            .map(|(kind, metric)| {
+                let start_time = Instant::now();
+                let value = metric.calculate(items);
+                let duration_micros = start_time.elapsed().as_micros();
+                GlobalMetricResult {
+                    kind: kind.clone(),
+                    result: value,
+                    duration_micros,
+                }
+            })
+            .collect()
+    }
+
+    pub fn process_global_huge(&self, items: &HashMap<String, MarketItem>,) -> Vec<GlobalMetricResult> {
+        self.global_metrics
+            .iter()
+            .filter(|(_kind, metric)| metric.is_huge())
             .map(|(kind, metric)| {
                 let start_time = Instant::now();
                 let value = metric.calculate(items);

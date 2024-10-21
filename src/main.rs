@@ -61,48 +61,78 @@ struct MarketItemShort {
     updated_at: DateTime<Utc>,
 
     // metrics
-    metrics: Vec<ItemMetricValue>,}
+    metrics: Vec<ItemMetricValue>,
+}
 
 struct AppStateWithCounter {
     counter: Mutex<i32>, // <- Mutex is necessary to mutate safely across threads
     items: Mutex<HashMap<String, MarketItem>>,
     items_to_process: Mutex<VecDeque<String>>, // Queue of market names to process
+    items_to_process_huge: Mutex<VecDeque<String>>, // Queue of market names to process
     global_stats: Mutex<GlobalStats>,
 }
 
 // Background task that periodically increments the counter
 async fn run_background_task(data: Arc<AppStateWithCounter>) {
+    let mut next_huge_process = Utc::now() + Duration::from_secs(10);
     loop {
         {
-            let mut items_to_process = data.items_to_process.lock().unwrap();
+            let mut did_work = false;
+            {
+                let mut items_to_process = data.items_to_process.lock().unwrap();
+                let mut items_to_process_huge = data.items_to_process_huge.lock().unwrap();
 
-            if !items_to_process.is_empty() {
-                println!("Handling {} items", items_to_process.len());
-                let mut items = data.items.lock().unwrap();
-                let processor = MetricProcessor::new();
-                let mut processed = 0;
+                if !items_to_process.is_empty() {
+                    println!("Handling {} items", items_to_process.len());
+                    let mut items = data.items.lock().unwrap();
+                    let processor = MetricProcessor::new();
+                    let mut processed = 0;
 
-                while let Some(market_name) = items_to_process.pop_front() {
-                    if processed > 1000 {
-                        break;
+                    while let Some(market_name) = items_to_process.pop_front() {
+                        items_to_process_huge.push_back(market_name.clone());
+
+                        let item = items.get_mut(&market_name).unwrap();
+                        if item.state == MarketItemState::NotAnalyzed {
+                            processor.process_item(item);
+                            item.state = MarketItemState::Analyzed;
+                            processed += 1;
+                        }
+
+                        if processed > 1000 {
+                            break;
+                        }
                     }
-                    let item = items.get_mut(&market_name).unwrap();
-                    if item.state == MarketItemState::NotAnalyzed {
-                        processor.process_item(item);
-                        item.state = MarketItemState::Analyzed;
-                        processed += 1;
+
+                    if processed > 0 {
+                        did_work = true;
+                        let global_metrics = processor.process_global(&items);
+                        let mut global_stats = data.global_stats.lock().unwrap();
+                        global_stats.metrics = global_metrics.into_iter().collect();
+                        global_stats.total_items = items.len() as u64;
+                        global_stats.total_analyzed_items = (items
+                            .iter()
+                            .filter(|(_, item)| item.state == MarketItemState::Analyzed)
+                            .count())
+                            as u64;
                     }
                 }
-                if processed > 0 {
-                    let global_metrics = processor.process_global(&items);
-                    let mut global_stats = data.global_stats.lock().unwrap();
-                    global_stats.metrics = global_metrics.into_iter().collect();
-                    global_stats.total_items = items.len() as u64;
-                    global_stats.total_analyzed_items = (items
-                        .iter()
-                        .filter(|(_, item)| item.state == MarketItemState::Analyzed)
-                        .count()) as u64;
+
+                if Utc::now() > next_huge_process {
+                    did_work = true;
+                    next_huge_process = Utc::now() + Duration::from_secs(60);
+                    if !items_to_process_huge.is_empty() {
+                        println!("Handling huge metrics for {} items", items_to_process_huge.len());
+                        let processor = MetricProcessor::new();
+                        let items = data.items.lock().unwrap();
+                        let global_metrics = processor.process_global_huge(&items);
+                        let mut global_stats = data.global_stats.lock().unwrap();
+                        global_stats.huge_metrics = global_metrics.into_iter().collect();
+                    }
                 }
+            }
+
+            if !did_work {
+                sleep(Duration::from_millis(100)).await;
             }
         }
         sleep(Duration::from_millis(1)).await;
@@ -130,7 +160,7 @@ async fn ws(
                     // println!("Got text: {msg}");
                     let global_metrics = data.global_stats.lock().unwrap().clone();
                     // serialize global metrics to json
-                    let json = serde_json::to_string(&global_metrics).unwrap();
+                    let json = serde_json::to_string(&global_metrics.to_lite()).unwrap();
                     let _ = session.text(json).await;
                 }
                 Message::Binary(bytes) => println!("Got binary: {bytes:?}"),
@@ -153,6 +183,7 @@ async fn main() -> std::io::Result<()> {
         counter: Mutex::new(0),
         items: Mutex::new(HashMap::new()),
         items_to_process: Mutex::new(VecDeque::new()),
+        items_to_process_huge: Mutex::new(VecDeque::new()),
         global_stats: Mutex::new(GlobalStats::new()),
     });
 
@@ -187,6 +218,7 @@ async fn main() -> std::io::Result<()> {
                 web::get().to(webui::item_detail_api_handler),
             )
             .route("/api/events", web::get().to(webui::events_api_handler))
+            .route("/api/charts", web::get().to(webui::charts_handler))
             .route("/api/import", web::post().to(webui::import_handler))
             .route("/ws", web::get().to(ws))
             .service(

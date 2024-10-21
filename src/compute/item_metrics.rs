@@ -159,16 +159,8 @@ define_metric!(
             })
             .map(|(_, _, amount)| *amount as u64)
             .sum();
-        // let total_volume: u64 = item
-        //     .history
-        //     .iter()
-        //     // filter only items that are sold last 365 days
-        //     .filter(|(date, _, _)| *date >= Utc::now().checked_sub_signed(Duration::days(365)).unwrap())
-        //     .map(|(_, avg_price, amount)| avg_price * (*amount as u64))
-        //     .sum();
 
         let popularity_score = (total_sold as f64).sqrt();
-        // let popularity_score = (total_sold as f64).log10() * (total_volume as f64).log10();
         ItemMetricValue::TotalVolume(popularity_score)
     },
     ItemMetricType::ItemPopularityScore

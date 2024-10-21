@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use serde::Serialize;
 
-use crate::{compute::item_metrics::ItemMetricValue, game::cs2::ItemCategory, prices::PriceValueTrait, webui::ItemCategoryStats, MarketItem, MarketItemState};
+use crate::{compute::item_metrics::ItemMetricValue, game::cs2::ItemCategory, prices::PriceValueTrait, webui::ItemCategoryStatsFull, MarketItem, MarketItemState};
 
 use super::item_metrics::{self};
 
@@ -46,7 +46,7 @@ pub enum GlobalMetricValue {
     SteamEstimatedFee(f64),
     GameEstimatedFee(f64),
     ValveEstimatedFee(f64),
-    CS2TotalItemsByCategory(HashMap<String, ItemCategoryStats>),
+    CS2TotalItemsByCategory(HashMap<String, ItemCategoryStatsFull>),
 }
 
 pub struct TotalSold;
@@ -59,10 +59,15 @@ pub struct ValveEstimatedFee;
 pub struct CS2TotalItemsByCategory;
 
 pub trait MetricCalculation {
+    fn is_huge(&self) -> bool;
     fn calculate(&self, items: &HashMap<String, MarketItem>) -> GlobalMetricValue;
 }
 
 impl MetricCalculation for TotalSold {
+    fn is_huge(&self) -> bool {
+        false
+    }
+
     fn calculate(&self, items: &HashMap<String, MarketItem>) -> GlobalMetricValue {
         let total_sold: u64 = items
             .iter()
@@ -74,6 +79,10 @@ impl MetricCalculation for TotalSold {
 }
 
 impl MetricCalculation for AveragePrice {
+    fn is_huge(&self) -> bool {
+        false
+    }
+
     fn calculate(&self, items: &HashMap<String, MarketItem>) -> GlobalMetricValue {
         let total_items = items.len() as f64;
         let total_price: f64 = items.iter().map(|(_, item)| item.price.to_usd()).sum();
@@ -88,6 +97,10 @@ impl MetricCalculation for AveragePrice {
 }
 
 impl MetricCalculation for TotalVolume {
+    fn is_huge(&self) -> bool {
+        false
+    }
+
     fn calculate(&self, items: &HashMap<String, MarketItem>) -> GlobalMetricValue {
         let total_volume: f64 = items
             .iter()
@@ -103,6 +116,10 @@ impl MetricCalculation for TotalVolume {
 }
 
 impl MetricCalculation for SteamEstimatedFee {
+    fn is_huge(&self) -> bool {
+        false
+    }
+
     fn calculate(&self, items: &HashMap<String, MarketItem>) -> GlobalMetricValue {
         let steam_fee: f64 = items
             .iter()
@@ -124,6 +141,10 @@ impl MetricCalculation for SteamEstimatedFee {
 }
 
 impl MetricCalculation for GameEstimatedFee {
+    fn is_huge(&self) -> bool {
+        false
+    }
+
     fn calculate(&self, items: &HashMap<String, MarketItem>) -> GlobalMetricValue {
         let game_fee: f64 = items
             .iter()
@@ -145,6 +166,10 @@ impl MetricCalculation for GameEstimatedFee {
 }
 
 impl MetricCalculation for ValveEstimatedFee {
+    fn is_huge(&self) -> bool {
+        false
+    }
+
     fn calculate(&self, items: &HashMap<String, MarketItem>) -> GlobalMetricValue {
         let valve_fee: f64 = items
             .iter()
@@ -166,14 +191,18 @@ impl MetricCalculation for ValveEstimatedFee {
 }
 
 impl MetricCalculation for CS2TotalItemsByCategory {
+    fn is_huge(&self) -> bool {
+        true
+    }
+
     fn calculate(&self, items: &HashMap<String, MarketItem>) -> GlobalMetricValue {
-        let mut result: HashMap<ItemCategory, ItemCategoryStats> = HashMap::new();
+        let mut result: HashMap<ItemCategory, ItemCategoryStatsFull> = HashMap::new();
 
         for (_, item) in items.iter() {
             let category = item.determine_item_category.clone();
 
             if !result.contains_key(&category) {
-                result.insert(category.clone(), ItemCategoryStats::new());
+                result.insert(category.clone(), ItemCategoryStatsFull::new());
             }
 
             let value = result.get_mut(&category).unwrap();
@@ -192,7 +221,7 @@ impl MetricCalculation for CS2TotalItemsByCategory {
 
                     // iterate over history and count sold per month
                     let mut sold_per_month = HashMap::new();
-                    for (date, price, amount) in item.history.iter() {
+                    for (date, _price, amount) in item.history.iter() {
                         // let month = date.date().month();
                         // let year = date.date().year();
                         // let key = DateTime::from_utc(NaiveDate::from_ymd(year, month, 1).and_hms(0, 0, 0), Utc);

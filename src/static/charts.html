@@ -93,6 +93,18 @@
                 return result;
             }
 
+
+        fetch('/api/charts')
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+
+                const globalStats = document.getElementById('global-stats');
+                globalStats.innerHTML = formatGlobalStats(data.global_stats);
+
+                updateCategoriesPlot(data.global_stats);
+                updateCategoriesPlot2(data.global_stats);
+            });
                 // const { location } = window
 
         const proto = location.protocol.startsWith('https') ? 'wss' : 'ws'
@@ -117,8 +129,8 @@
             globalStats.innerHTML = formatGlobalStats(metrics);
 
             if (document.getElementById('toggle-switch-checkbox').checked) {
-                updateCategoriesPlot(metrics);
-                updateCategoriesPlot2(metrics);
+                // updateCategoriesPlot(metrics);
+                // updateCategoriesPlot2(metrics);
             }
 
             new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
@@ -137,14 +149,14 @@
         function updateCategoriesPlot2(metrics) {
             let idx = 0;
 
-            for (const [key, value] of Object.entries(metrics.metrics)) {
+            for (const [key, value] of Object.entries(metrics.huge_metrics)) {
                     let first_key = Object.keys(value.result)[0];
                     if (first_key === 'CS2TotalItemsByCategory') {
                         idx = key;               
                     }
                 }
 
-            let test_metric = metrics.metrics[idx].result.CS2TotalItemsByCategory;
+            let test_metric = metrics.huge_metrics[idx].result.CS2TotalItemsByCategory;
 
             let plt_data = Object.entries(test_metric).map(p => {
                 let k = p[0];
@@ -252,16 +264,18 @@
 
             let idx = 0;
 
-            for (const [key, value] of Object.entries(metrics.metrics)) {
+            for (const [key, value] of Object.entries(metrics.huge_metrics)) {
                     let first_key = Object.keys(value.result)[0];
                     if (first_key === 'CS2TotalItemsByCategory') {
                         idx = key;               
                     }
                 }
 
-            let test_metric = metrics.metrics[idx].result.CS2TotalItemsByCategory;
+            let test_metric = metrics.huge_metrics[idx].result.CS2TotalItemsByCategory;
 
             // sort by key
+            console.log(metrics.huge_metrics[idx].result);
+            console.log(test_metric);
             test_metric = Object.fromEntries(Object.entries(test_metric).sort((a, b) => a[0].localeCompare(b[0])));
 
             var data1 = [{
