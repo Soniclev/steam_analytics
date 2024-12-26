@@ -5,7 +5,7 @@ use actix_web::Responder;
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 
-use crate::compute::global_metrics::{GlobalMetricResult, GlobalMetricType, GlobalMetricValue};
+use crate::compute::global_metrics::{GlobalMetricResult, GlobalMetricType};
 use crate::compute::item_metrics::ItemMetricResult;
 use crate::compute::processor::MetricProcessor;
 use crate::consts::EVENTS;
@@ -84,12 +84,13 @@ pub struct ItemCategoryStatsFull {
     pub total_sold: u64,
     pub total_volume: f64,
 
+    pub sold_per_day: HashMap<DateTime<Utc>, u64>,
     pub sold_per_month: HashMap<DateTime<Utc>, u64>,
 }
 
 impl ItemCategoryStatsFull {
     pub fn new() -> Self {
-        Self { total_items: 0, total_analyzed_items: 0, total_sold: 0, total_volume: 0.0, sold_per_month: HashMap::new() }
+        Self { total_items: 0, total_analyzed_items: 0, total_sold: 0, total_volume: 0.0, sold_per_day: HashMap::new(), sold_per_month: HashMap::new() }
     }
 }
 
@@ -153,6 +154,7 @@ pub async fn item_detail_api_handler(
 
 #[derive(Serialize, Clone)]
 pub struct ChartsApiResponse {
+    events: Vec<(String, String, String)>,
     global_stats: GlobalStats,
 }
 
@@ -162,6 +164,10 @@ pub async fn charts_handler(data: web::Data<AppStateWithCounter>) -> Result<impl
 
     Ok(web::Json(
         ChartsApiResponse {
+            events: EVENTS
+            .iter()
+            .map(|(start, end, name)| (start.to_string(), end.to_string(), name.to_string()))
+            .collect(),
             global_stats: global_stats.clone()
         }
 )

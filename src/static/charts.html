@@ -45,6 +45,7 @@
         </div>
         <hr>
         <div id="myDiv"></div>
+        <div id="myDiv2"></div>
 
         <hr>
         <div id="totalItemsByCategory"></div>
@@ -93,6 +94,32 @@
                 return result;
             }
 
+            function mapEvent(event) {
+            return {
+
+                type: 'rect',
+                xref: 'x',
+                yref: 'paper',
+                x0: event[0],
+                y0: 0,
+                x1: event[1],
+                y1: 1,
+                fillcolor: '#d3d3d3',
+                opacity: 0.2,
+                editable: true,
+                line: {
+                    width: 0,
+                },
+                label: {
+
+                    text: event[2],
+                    font: { size: 10, color: 'green' },
+                    textposition: 'top left',
+                },
+
+            }
+        }
+
 
         fetch('/api/charts')
             .then(response => response.json())
@@ -102,8 +129,8 @@
                 const globalStats = document.getElementById('global-stats');
                 globalStats.innerHTML = formatGlobalStats(data.global_stats);
 
-                updateCategoriesPlot(data.global_stats);
-                updateCategoriesPlot2(data.global_stats);
+                updateCategoriesPlot(data.global_stats, data.events);
+                updateCategoriesPlot2(data.global_stats, data.events);
             });
                 // const { location } = window
 
@@ -146,7 +173,7 @@
         }
 
         // TODO: fetch from API not websocket
-        function updateCategoriesPlot2(metrics) {
+        function updateCategoriesPlot2(metrics, events) {
             let idx = 0;
 
             for (const [key, value] of Object.entries(metrics.huge_metrics)) {
@@ -161,6 +188,19 @@
             let plt_data = Object.entries(test_metric).map(p => {
                 let k = p[0];
                 let v = p[1];
+                let sold_per_day = Object.fromEntries(Object.entries(v.sold_per_day).sort((a, b) => a[0].localeCompare(b[0])));
+                // console.log(sold_per_month);
+                return {
+                    name: k,
+                    type: "line",
+                    x: Object.keys(sold_per_day),
+                    y: Object.values(sold_per_day).map(vv => vv),
+                }
+            });
+
+            let plt_data2 = Object.entries(test_metric).map(p => {
+                let k = p[0];
+                let v = p[1];
                 let sold_per_month = Object.fromEntries(Object.entries(v.sold_per_month).sort((a, b) => a[0].localeCompare(b[0])));
                 // console.log(sold_per_month);
                 return {
@@ -168,52 +208,14 @@
                     type: "line",
                     x: Object.keys(sold_per_month),
                     y: Object.values(sold_per_month).map(vv => vv),
-                    // text: Object.values(sold_per_month).map(vv => vv),
-                    // textposition: "auto",
-                    // textfont: {
-                    //     size: 14,
-                    //     color: '#000'
-                    // },
-                    // marker: {
-                    //     color: '#7D6D00'
-                    // },
-                    // width: 0.5
                 }
             });
                 
-            // var trace1 = {
-            //         type: "scatter",
-            //         mode: "lines",
-            //         name: 'Price in USD',
-            //         x: data.item.history.map(x => x[0]),
-            //         y: data.item.history.map(x => x[1] / 100.0),
-            //         // green like on Steam community market
-            //         line: { color: '#7D6D00' },
-            //     }
-
-            //     var trace2 = {
-            //         type: "bar",
-            //         // mode: "lines",
-            //         name: 'Amount',
-            //         width: 1000 * 60 * 60 * 24,  // 24 hours in milliseconds
-            //         zorder: -1,
-            //         x: data.item.history.map(x => x[0]),
-            //         y: data.item.history.map(x => x[2]),
-            //         line: { color: '#FF7F50' }
-            //     }
-
-                // var plt_data = [trace1, trace2];
-
                 var layout = {
                     title: 'Time Series with Rangeslider',
-                    // shapes: data.events.map(mapEvent),
+                    shapes: events.map(mapEvent),
                     xaxis: {
-                        // autorange: true,
-                        // range: [
-                            // data.item.history[0][0],
-                            // data.item.history[data.item.history.length - 1][0]
-                            // '2015-02-17', '2017-02-16'
-                        // ],
+                        autorange: true,
                         rangeselector: {
                             buttons: [
                                 {
@@ -256,10 +258,11 @@
                 };
 
                 Plotly.newPlot('myDiv', plt_data, layout);
+                Plotly.newPlot('myDiv2', plt_data2, layout);
 
             }
 
-        function updateCategoriesPlot(metrics) {
+        function updateCategoriesPlot(metrics, events) {
             // console.log(metrics);
 
             let idx = 0;
