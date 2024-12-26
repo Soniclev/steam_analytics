@@ -4,7 +4,7 @@ use crate::{MarketItem, MarketItemState};
 
 use super::{
     global::{self, base::{GlobalMetricResult, MetricCalculation}},
-    item::{self, metrics::{ItemMetricCalculation, ItemMetricResult}},
+    item::{self, metrics::{ItemMetricCalculation, ItemMetricResult}, static_metrics::compute_item_static_metrics},
 };
 
 pub struct MetricProcessor {
@@ -59,6 +59,8 @@ impl MetricProcessor {
         if item.state == MarketItemState::Analyzed {
             return item.metrics.clone();
         }
+
+        compute_item_static_metrics(item);
 
         self.item_metrics
             .iter()

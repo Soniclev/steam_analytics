@@ -43,11 +43,13 @@ impl MetricCalculation for CS2TotalItemsByCategory {
 
                     item.metrics.iter().for_each(|metric| match metric.result {
                         ItemMetricValue::TotalSold(sold) => value.total_sold += sold.clone(),
-                        ItemMetricValue::TotalVolume(volume) => {
-                            value.total_volume += volume.clone()
-                        }
+                        // ItemMetricValue::TotalVolume(volume) => {
+                        //     value.total_volume += volume.clone()
+                        // }
                         _ => {}
                     });
+
+                    value.total_volume += item.static_metrics.total_volume;
 
                     // iterate over history and count sold per month
                     let mut sold_per_day: HashMap<&chrono::DateTime<chrono::Utc>, u64> =

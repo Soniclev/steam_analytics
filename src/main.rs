@@ -5,7 +5,7 @@ use actix_web::{
 use actix_ws::Message;
 use chrono::{DateTime, Utc};
 use compute::{
-    item::metrics::{ItemMetricResult, ItemMetricValue},
+    item::{metrics::{ItemMetricResult, ItemMetricValue}, static_metrics::StaticMetrics},
     processor::MetricProcessor,
 };
 use futures::StreamExt as _;
@@ -45,6 +45,7 @@ struct MarketItem {
 
     history: Vec<(DateTime<Utc>, PriceValue, u32)>,
     analyzes_result: Option<steam_analyzer::AnalysisResult>,
+    static_metrics: StaticMetrics,
 
     // metrics
     metrics: Vec<ItemMetricResult>,
@@ -62,6 +63,7 @@ struct MarketItemShort {
 
     // metrics
     metrics: Vec<ItemMetricValue>,
+    static_metrics: StaticMetrics,
 }
 
 struct AppStateWithCounter {

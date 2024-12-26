@@ -3,7 +3,7 @@ use lazy_static::lazy_static;
 use regex::Regex;
 
 use crate::{
-    consts::DESIRED_PERCENTILE, game::cs2::determine_item_category, prices::{PriceValue, PriceValueTrait}, steam_analyzer::{analyze_steam_sell_history, extract_sell_history}, MarketItem, MarketItemState
+    compute::item::static_metrics::StaticMetrics, consts::DESIRED_PERCENTILE, game::cs2::determine_item_category, prices::{PriceValue, PriceValueTrait}, steam_analyzer::{analyze_steam_sell_history, extract_sell_history}, MarketItem, MarketItemState
 };
 
 lazy_static! {
@@ -45,6 +45,7 @@ pub fn import_item(page: &String, current_datetime: DateTime<Utc>) -> Option<Mar
                     .map(|(date, price, amount)| (date, PriceValue::from_usd_f64(price), amount as u32))
                     .collect(),
                 analyzes_result: analysis_result.clone(),
+                static_metrics: StaticMetrics::new(),
                 price: {
                     if analysis_result.is_some() {
                         analysis_result

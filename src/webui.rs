@@ -50,6 +50,7 @@ pub async fn items_api_handler(data: web::Data<AppStateWithCounter>) -> Result<i
             updated_at: item.updated_at.clone(),
             determine_item_category: item.determine_item_category.clone(),
             metrics: item.metrics.iter().map(|value| value.result.clone()).collect(),
+            static_metrics: item.static_metrics.clone(),
         }).collect(),
         response_generation_duration: resp_gen_started.elapsed().as_micros(),
     };

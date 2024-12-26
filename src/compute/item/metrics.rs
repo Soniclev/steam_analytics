@@ -16,10 +16,11 @@ pub struct ItemMetricResult {
 #[derive(Serialize, Clone)]
 pub enum ItemMetricValue {
     TotalSold(u64),
-    TotalVolume(f64),
+    // TotalVolume(f64),
     SteamEstimatedFee(f64),
     GameEstimatedFee(f64),
     ValveEstimatedFee(f64),
+    PopularityScore(f64),
 }
 
 macro_rules! define_metric {
@@ -51,18 +52,18 @@ define_metric!(
     ItemMetricType::ItemTotalSold
 );
 
-define_metric!(
-    ItemTotalVolume,
-    |item: &MarketItem| {
-        let total_volume: u64 = item
-            .history
-            .iter()
-            .map(|(_, avg_price, amount)| avg_price * (*amount as u64))
-            .sum();
-        ItemMetricValue::TotalVolume(total_volume as f64) // Assuming price is converted
-    },
-    ItemMetricType::ItemTotalVolume
-);
+// define_metric!(
+//     ItemTotalVolume,
+//     |item: &MarketItem| {
+//         let total_volume: u64 = item
+//             .history
+//             .iter()
+//             .map(|(_, avg_price, amount)| avg_price * (*amount as u64))
+//             .sum();
+//         ItemMetricValue::TotalVolume(total_volume as f64) // Assuming price is converted
+//     },
+//     ItemMetricType::ItemTotalVolume
+// );
 
 define_metric!(
     ItemSteamEstimatedFee,
@@ -131,7 +132,7 @@ define_metric!(
             .sum();
 
         let popularity_score = (total_sold as f64).sqrt();
-        ItemMetricValue::TotalVolume(popularity_score)
+        ItemMetricValue::PopularityScore(popularity_score)
     },
     ItemMetricType::ItemPopularityScore
 );

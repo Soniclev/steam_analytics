@@ -64,7 +64,8 @@
                 }
         
                 let total_sold = item.metrics.find(m => Object.keys(m)[0] === 'TotalSold')["TotalSold"];
-                let total_volume = item.metrics.find(m => Object.keys(m)[0] === 'TotalVolume')["TotalVolume"];
+                let total_volume = item.static_metrics.total_volume;
+                // let total_volume = item.metrics.find(m => Object.keys(m)[0] === 'TotalVolume')["TotalVolume"];
                 return `<tr>
                 <td><a href="/static/item.html?app_id=${item.app_id}&market_name=${encodeURIComponent(item.name)}">${item.app_id}</a></td>
                 <td><a href="/static/item.html?app_id=${item.app_id}&market_name=${encodeURIComponent(item.name)}">${item.name}</a></td>
@@ -104,16 +105,18 @@
                         if (b.determine_item_category == "Unknown") {
                             return 10000000000;
                         }
-                        let a_volume = 0;
-                        let b_volume = 0;
+                        return b.static_metrics.total_volume - a.static_metrics.total_volume;
+                        // let a_volume = 0;
+                        // let b_volume = 0;
 
-                        if (a.metrics.length > 0) {
-                            a_volume = a.metrics.find(m => Object.keys(m)[0] === 'TotalVolume')["TotalVolume"];
-                        }
-                        if (b.metrics.length > 0) {
-                            b_volume = b.metrics.find(m => Object.keys(m)[0] === 'TotalVolume')["TotalVolume"];
-                        }
-                        return b_volume - a_volume;
+                        // if (a.metrics.length > 0) {
+                        //     a_volume = a.static_metrics.total_volume;
+                        //     // a_volume = a.metrics.find(m => Object.keys(m)[0] === 'TotalVolume')["TotalVolume"];
+                        // }
+                        // if (b.metrics.length > 0) {
+                        //     b_volume = b.metrics.find(m => Object.keys(m)[0] === 'TotalVolume')["TotalVolume"];
+                        // }
+                        // return b_volume - a_volume;
                     }).map(item => formatItem(item)).join('\n');
 
                     const globalStats = document.getElementById('global-stats');

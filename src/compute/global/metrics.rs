@@ -53,9 +53,10 @@ impl MetricCalculation for TotalVolume {
         let total_volume: f64 = items
             .iter()
             .map(|(_, item)| {
-                item.analyzes_result
-                    .as_ref()
-                    .map_or(0.0, |r| r.total_volume)
+                item.static_metrics.total_volume
+                // item.analyzes_result
+                //     .as_ref()
+                //     .map_or(0.0, |r| r.total_volume)
             })
             .sum();
 

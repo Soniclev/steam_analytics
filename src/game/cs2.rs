@@ -10,6 +10,7 @@ pub enum ItemCategory {
     Patch,
     PatchPack,
     Package,
+    StickerCapsule,
     AutographCapsule,
     Graffiti,
     MusicKit,
@@ -33,6 +34,7 @@ impl ToString for ItemCategory {
             ItemCategory::Patch => "Patch".to_string(),
             ItemCategory::PatchPack => "PatchPack".to_string(),
             ItemCategory::Package => "Package".to_string(),
+            ItemCategory::StickerCapsule => "StickerCapsule".to_string(),
             ItemCategory::AutographCapsule => "AutographCapsule".to_string(),
             ItemCategory::Graffiti => "Graffiti".to_string(),
             ItemCategory::MusicKit => "MusicKit".to_string(),
@@ -200,8 +202,12 @@ pub fn determine_item_category(item_name: &str) -> ItemCategory {
         "sport gloves",
     ];
 
+    if item_name_lower.contains("sticker capsule") {
+        return ItemCategory::StickerCapsule;
+    }
+
     // Match patterns for each category
-    if item_name_lower.contains("sticker") {
+    if item_name_lower.starts_with("sticker") {
         return ItemCategory::Sticker;
     } else if item_name_lower.ends_with("case")
         || item_name_lower.ends_with("case 1")
