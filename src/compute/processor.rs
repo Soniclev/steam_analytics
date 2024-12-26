@@ -3,8 +3,8 @@ use std::{collections::HashMap, time::Instant};
 use crate::MarketItem;
 
 use super::{
-    global_metrics::{self, GlobalMetricResult, GlobalMetricType, MetricCalculation},
-    item_metrics::{self, ItemMetricCalculation, ItemMetricResult, ItemMetricType},
+    global::{self, base::{GlobalMetricResult, GlobalMetricType, MetricCalculation}},
+    item::{self, metrics::{ItemMetricCalculation, ItemMetricResult, ItemMetricType}},
 };
 
 pub struct MetricProcessor {
@@ -15,62 +15,64 @@ pub struct MetricProcessor {
 impl MetricProcessor {
     pub fn new() -> Self {
         MetricProcessor {
-            global_metrics: vec![
-                (
-                    GlobalMetricType::TotalSold,
-                    Box::new(global_metrics::TotalSold),
-                ),
-                (
-                    GlobalMetricType::AveragePrice,
-                    Box::new(global_metrics::AveragePrice),
-                ),
-                (
-                    GlobalMetricType::TotalVolume,
-                    Box::new(global_metrics::TotalVolume),
-                ),
-                (
-                    GlobalMetricType::SteamEstimatedFee,
-                    Box::new(global_metrics::SteamEstimatedFee),
-                ),
-                (
-                    GlobalMetricType::GameEstimatedFee,
-                    Box::new(global_metrics::GameEstimatedFee),
-                ),
-                (
-                    GlobalMetricType::ValveEstimatedFee,
-                    Box::new(global_metrics::ValveEstimatedFee),
-                ),
-                (
-                    GlobalMetricType::CS2TotalItemsByCategory,
-                    Box::new(global_metrics::CS2TotalItemsByCategory),
-                )
-            ],
-            item_metrics: vec![
-                (
-                    ItemMetricType::ItemTotalSold,
-                    Box::new(item_metrics::ItemTotalSold),
-                ),
-                (
-                    ItemMetricType::ItemTotalVolume,
-                    Box::new(item_metrics::ItemTotalVolume),
-                ),
-                (
-                    ItemMetricType::ItemSteamEstimatedFee,
-                    Box::new(item_metrics::ItemSteamEstimatedFee),
-                ),
-                (
-                    ItemMetricType::ItemGameEstimatedFee,
-                    Box::new(item_metrics::ItemGameEstimatedFee),
-                ),
-                (
-                    ItemMetricType::ItemValveEstimatedFee,
-                    Box::new(item_metrics::ItemValveEstimatedFee),
-                ),
-                (
-                    ItemMetricType::ItemPopularityScore,
-                    Box::new(item_metrics::ItemPopularityScore),
-                ),
-            ],
+            global_metrics: global::base::get_metrics(),
+            item_metrics: item::base::get_metrics(),
+            // global_metrics: vec![
+            //     (
+            //         GlobalMetricType::TotalSold,
+            //         Box::new(metrics::TotalSold),
+            //     ),
+            //     (
+            //         GlobalMetricType::AveragePrice,
+            //         Box::new(metrics::AveragePrice),
+            //     ),
+            //     (
+            //         GlobalMetricType::TotalVolume,
+            //         Box::new(metrics::TotalVolume),
+            //     ),
+            //     (
+            //         GlobalMetricType::SteamEstimatedFee,
+            //         Box::new(metrics::SteamEstimatedFee),
+            //     ),
+            //     (
+            //         GlobalMetricType::GameEstimatedFee,
+            //         Box::new(metrics::GameEstimatedFee),
+            //     ),
+            //     (
+            //         GlobalMetricType::ValveEstimatedFee,
+            //         Box::new(metrics::ValveEstimatedFee),
+            //     ),
+            //     (
+            //         GlobalMetricType::CS2TotalItemsByCategory,
+            //         Box::new(huge::cs2::CS2TotalItemsByCategory),
+            //     )
+            // ],
+            // item_metrics: vec![
+            //     (
+            //         ItemMetricType::ItemTotalSold,
+            //         Box::new(item_metrics::ItemTotalSold),
+            //     ),
+            //     (
+            //         ItemMetricType::ItemTotalVolume,
+            //         Box::new(item_metrics::ItemTotalVolume),
+            //     ),
+            //     (
+            //         ItemMetricType::ItemSteamEstimatedFee,
+            //         Box::new(item_metrics::ItemSteamEstimatedFee),
+            //     ),
+            //     (
+            //         ItemMetricType::ItemGameEstimatedFee,
+            //         Box::new(item_metrics::ItemGameEstimatedFee),
+            //     ),
+            //     (
+            //         ItemMetricType::ItemValveEstimatedFee,
+            //         Box::new(item_metrics::ItemValveEstimatedFee),
+            //     ),
+            //     (
+            //         ItemMetricType::ItemPopularityScore,
+            //         Box::new(item_metrics::ItemPopularityScore),
+            //     ),
+            // ],
         }
     }
 

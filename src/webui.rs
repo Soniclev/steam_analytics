@@ -5,8 +5,8 @@ use actix_web::Responder;
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 
-use crate::compute::global_metrics::{GlobalMetricResult, GlobalMetricType};
-use crate::compute::item_metrics::ItemMetricResult;
+use crate::compute::global::base::{GlobalMetricResult, GlobalMetricType};
+use crate::compute::item::metrics::ItemMetricResult;
 use crate::compute::processor::MetricProcessor;
 use crate::consts::EVENTS;
 use crate::import::import_item;
@@ -71,7 +71,7 @@ impl GlobalStats {
 
     pub fn to_lite(&self) -> GlobalStats {
         // filter out metrics that we don't need
-        let metrics = self.metrics.iter().filter(|f| f.kind != GlobalMetricType::CS2TotalItemsByCategory).map(|f| f.clone()).collect();
+        let metrics = self.metrics.iter().filter(|f| f.should_include_in_ws()).map(|f| f.clone()).collect();
         GlobalStats { metrics, huge_metrics: self.huge_metrics.clone(), total_items: self.total_items, total_analyzed_items: self.total_analyzed_items }
     }
 }

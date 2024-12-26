@@ -5,7 +5,7 @@ use actix_web::{
 use actix_ws::Message;
 use chrono::{DateTime, Utc};
 use compute::{
-    item_metrics::{ItemMetricType, ItemMetricValue},
+    item::metrics::{ItemMetricType, ItemMetricValue},
     processor::MetricProcessor,
 };
 use futures::StreamExt as _;
@@ -127,6 +127,7 @@ async fn run_background_task(data: Arc<AppStateWithCounter>) {
                         let global_metrics = processor.process_global_huge(&items);
                         let mut global_stats = data.global_stats.lock().unwrap();
                         global_stats.huge_metrics = global_metrics.into_iter().collect();
+                        items_to_process_huge.clear();
                     }
                 }
             }
@@ -156,6 +157,7 @@ async fn ws(
                         return;
                     }
                 }
+
                 Message::Text(_) => {
                     // println!("Got text: {msg}");
                     let global_metrics = data.global_stats.lock().unwrap().clone();

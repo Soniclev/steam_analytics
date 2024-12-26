@@ -2,9 +2,9 @@ version: '3'
 
 tasks:
   wrun:
-   cmd: cargo watch -x run
+   cmd: watchexec -i "src/static/*" -w "./src/" -r cargo run
    desc: Run the project in watch mode
 
   wrun-release:
-   cmd: cargo watch -x "run --release" -i "src/static/*"
+   cmd: watchexec -i "src/static/*" -w "./src/" -r cargo run --release
    desc: Run the project in watch mode
