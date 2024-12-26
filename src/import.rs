@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use chrono::{DateTime, Utc};
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -44,7 +42,7 @@ pub fn import_item(page: &String, current_datetime: DateTime<Utc>) -> Option<Mar
                 updated_at: current_datetime,
                 history: extract_sell_history(&page)
                     .into_iter()
-                    .map(|(date, price, amount)| (date, PriceValue::from_usd_f64(price), amount))
+                    .map(|(date, price, amount)| (date, PriceValue::from_usd_f64(price), amount as u32))
                     .collect(),
                 analyzes_result: analysis_result.clone(),
                 price: {
@@ -61,7 +59,7 @@ pub fn import_item(page: &String, current_datetime: DateTime<Utc>) -> Option<Mar
 
                 determine_item_category: determine_item_category(&market_name_clean),
 
-                metrics: HashMap::new(),
+                metrics: Vec::new(),
                 state: MarketItemState::NotAnalyzed,
             });
         }

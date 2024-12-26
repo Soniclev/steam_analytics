@@ -40,7 +40,6 @@ pub enum GlobalMetricValue {
 }
 
 pub trait MetricCalculation {
-    fn to_string(&self) -> String;
     fn is_huge(&self) -> bool;
     fn calculate(&self, items: &HashMap<String, MarketItem>) -> GlobalMetricValue;
 }

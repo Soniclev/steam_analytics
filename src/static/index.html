@@ -80,7 +80,7 @@
                 let result = `Total items: ${stats.total_items.toLocaleString()}<br>`;
                 result += `Total analyzed items: ${stats.total_analyzed_items.toLocaleString()}<br>`;
                 // sort metrics by key
-                stats.metrics = Object.fromEntries(Object.entries(stats.metrics).sort((a, b) => a[0].localeCompare(b[0])));
+                // stats.metrics = Object.fromEntries(Object.entries(stats.metrics).sort((a, b) => a[0].localeCompare(b[0])));
                 for (const [key, value] of Object.entries(stats.metrics)) {
                     let first_key = Object.keys(value.result)[0];
                     if (first_key === 'Test') {

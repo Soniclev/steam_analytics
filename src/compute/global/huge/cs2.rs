@@ -13,11 +13,9 @@ use crate::{
 };
 pub struct CS2TotalItemsByCategory;
 
-impl MetricCalculation for CS2TotalItemsByCategory {
-    fn to_string(&self) -> String {
-        "CS2TotalItemsByCategory".to_string()
-    }
+const CS2_GAME_ID: u64 = 730;
 
+impl MetricCalculation for CS2TotalItemsByCategory {
     fn is_huge(&self) -> bool {
         true
     }
@@ -26,7 +24,7 @@ impl MetricCalculation for CS2TotalItemsByCategory {
         let mut result: HashMap<ItemCategory, ItemCategoryStatsFull> = HashMap::new();
 
         for (_, item) in items.iter() {
-            if item.app_id != 730 {
+            if item.app_id != CS2_GAME_ID {
                 continue;
             }
 
@@ -43,7 +41,7 @@ impl MetricCalculation for CS2TotalItemsByCategory {
                 MarketItemState::Analyzed => {
                     value.total_analyzed_items += 1;
 
-                    item.metrics.iter().for_each(|(_, metric)| match metric {
+                    item.metrics.iter().for_each(|metric| match metric.result {
                         ItemMetricValue::TotalSold(sold) => value.total_sold += sold.clone(),
                         ItemMetricValue::TotalVolume(volume) => {
                             value.total_volume += volume.clone()

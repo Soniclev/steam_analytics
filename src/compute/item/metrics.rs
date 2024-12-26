@@ -27,10 +27,6 @@ macro_rules! define_metric {
         pub struct $metric_name;
 
         impl ItemMetricCalculation for $metric_name {
-            fn to_string(&self) -> String {
-                stringify!($metric_name).to_string()
-            }
-
             fn calculate(&self, item: &MarketItem) -> ItemMetricValue {
                 $calc_body(item)
             }
@@ -39,7 +35,6 @@ macro_rules! define_metric {
 }
 
 pub trait ItemMetricCalculation {
-    fn to_string(&self) -> String;
     fn calculate(&self, item: &MarketItem) -> ItemMetricValue;
 }
 

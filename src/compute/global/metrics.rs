@@ -4,7 +4,6 @@ use crate::{compute::item::metrics::ItemMetricValue, prices::PriceValueTrait, Ma
 
 use super::base::{GlobalMetricValue, MetricCalculation};
 
-
 pub struct TotalSold;
 pub struct TotalVolume;
 pub struct AveragePrice;
@@ -13,10 +12,6 @@ pub struct GameEstimatedFee;
 pub struct ValveEstimatedFee;
 
 impl MetricCalculation for TotalSold {
-    fn to_string(&self) -> String {
-        "TotalSold".to_string()
-    }
-
     fn is_huge(&self) -> bool {
         false
     }
@@ -32,10 +27,6 @@ impl MetricCalculation for TotalSold {
 }
 
 impl MetricCalculation for AveragePrice {
-    fn to_string(&self) -> String {
-        "AveragePrice".to_string()
-    }
-
     fn is_huge(&self) -> bool {
         false
     }
@@ -54,10 +45,6 @@ impl MetricCalculation for AveragePrice {
 }
 
 impl MetricCalculation for TotalVolume {
-    fn to_string(&self) -> String {
-        "TotalVolume".to_string()
-    }
-
     fn is_huge(&self) -> bool {
         false
     }
@@ -77,10 +64,6 @@ impl MetricCalculation for TotalVolume {
 }
 
 impl MetricCalculation for SteamEstimatedFee {
-    fn to_string(&self) -> String {
-        "SteamEstimatedFee".to_string()
-    }
-
     fn is_huge(&self) -> bool {
         false
     }
@@ -89,12 +72,10 @@ impl MetricCalculation for SteamEstimatedFee {
         let steam_fee: f64 = items
             .iter()
             .map(|(_, item)| {
-                // const KIND: metrics::ItemMetricType =
-                //     metrics::ItemMetricType::ItemSteamEstimatedFee;
-                const KIND: &str = stringify!(ItemSteamEstimatedFee);
                 item.metrics
-                    .get(KIND)
-                    .and_then(|computed| match computed {
+                    .iter()
+                    .find(|m| matches!(m.result, ItemMetricValue::SteamEstimatedFee(_)))
+                    .and_then(|computed| match computed.result {
                         ItemMetricValue::SteamEstimatedFee(fee) => Some(fee.clone()),
                         _ => None,
                     })
@@ -107,10 +88,6 @@ impl MetricCalculation for SteamEstimatedFee {
 }
 
 impl MetricCalculation for GameEstimatedFee {
-    fn to_string(&self) -> String {
-        "GameEstimatedFee".to_string()
-    }
-
     fn is_huge(&self) -> bool {
         false
     }
@@ -119,12 +96,11 @@ impl MetricCalculation for GameEstimatedFee {
         let game_fee: f64 = items
             .iter()
             .map(|(_, item)| {
-                // const KIND: metrics::ItemMetricType =
-                //     metrics::ItemMetricType::ItemGameEstimatedFee;
-                const KIND: &str = stringify!(ItemGameEstimatedFee);
                 item.metrics
-                    .get(KIND)
-                    .and_then(|computed| match computed {
+                    // .get(KIND)
+                    .iter()
+                    .find(|m| matches!(m.result, ItemMetricValue::GameEstimatedFee(_)))
+                    .and_then(|computed| match computed.result {
                         ItemMetricValue::GameEstimatedFee(fee) => Some(fee.clone()),
                         _ => None,
                     })
@@ -137,10 +113,6 @@ impl MetricCalculation for GameEstimatedFee {
 }
 
 impl MetricCalculation for ValveEstimatedFee {
-    fn to_string(&self) -> String {
-        "ValveEstimatedFee".to_string()
-    }
-
     fn is_huge(&self) -> bool {
         false
     }
@@ -149,12 +121,11 @@ impl MetricCalculation for ValveEstimatedFee {
         let valve_fee: f64 = items
             .iter()
             .map(|(_, item)| {
-                // const KIND: metrics::ItemMetricType =
-                //     metrics::ItemMetricType::ItemValveEstimatedFee;
-                const KIND: &str = stringify!(ItemValveEstimatedFee);
                 item.metrics
-                    .get(KIND)
-                    .and_then(|computed| match computed {
+                    // .get(KIND)
+                    .iter()
+                    .find(|m| matches!(m.result, ItemMetricValue::ValveEstimatedFee(_)))
+                    .and_then(|computed| match computed.result {
                         ItemMetricValue::ValveEstimatedFee(fee) => Some(fee.clone()),
                         _ => None,
                     })
@@ -165,4 +136,3 @@ impl MetricCalculation for ValveEstimatedFee {
         GlobalMetricValue::ValveEstimatedFee(valve_fee)
     }
 }
-

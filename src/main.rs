@@ -5,7 +5,7 @@ use actix_web::{
 use actix_ws::Message;
 use chrono::{DateTime, Utc};
 use compute::{
-    item::metrics::ItemMetricValue,
+    item::metrics::{ItemMetricResult, ItemMetricValue},
     processor::MetricProcessor,
 };
 use futures::StreamExt as _;
@@ -43,11 +43,11 @@ struct MarketItem {
 
     updated_at: DateTime<Utc>,
 
-    history: Vec<(DateTime<Utc>, PriceValue, i32)>,
+    history: Vec<(DateTime<Utc>, PriceValue, u32)>,
     analyzes_result: Option<steam_analyzer::AnalysisResult>,
 
     // metrics
-    metrics: HashMap<String, ItemMetricValue>,
+    metrics: Vec<ItemMetricResult>,
     state: MarketItemState,
 }
 

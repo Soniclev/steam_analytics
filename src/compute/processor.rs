@@ -1,6 +1,6 @@
 use std::{collections::HashMap, time::Instant};
 
-use crate::MarketItem;
+use crate::{MarketItem, MarketItemState};
 
 use super::{
     global::{self, base::{GlobalMetricResult, MetricCalculation}},
@@ -56,30 +56,24 @@ impl MetricProcessor {
     }
 
     pub fn process_item(&self, item: &mut MarketItem) -> Vec<ItemMetricResult> {
+        if item.state == MarketItemState::Analyzed {
+            return item.metrics.clone();
+        }
+
         self.item_metrics
             .iter()
             .map(|metric| {
-                let kind = metric.to_string();
-                if item.metrics.contains_key(&kind) {
-                    return ItemMetricResult {
-                        // kind: kind.clone(),
-                        result: item.metrics.get(&kind).unwrap().clone(),
-                        duration_micros: 0,
-                    };
-                } else {
-                    let start_time = Instant::now();
-                    let value = metric.calculate(item);
-                    let duration_micros = start_time.elapsed().as_micros();
-                    let item_metric_result = ItemMetricResult {
-                        result: value,
-                        duration_micros,
-                    };
+                let start_time = Instant::now();
+                let value = metric.calculate(item);
+                let duration_micros = start_time.elapsed().as_micros();
+                let item_metric_result = ItemMetricResult {
+                    result: value,
+                    duration_micros,
+                };
 
-                    item.metrics
-                        .insert(kind.clone(), item_metric_result.result.clone());
+                item.metrics.push(item_metric_result.clone());
 
-                    item_metric_result
-                }
+                item_metric_result
             })
             .collect()
     }
