@@ -40,10 +40,10 @@
         function formatItemStats(stats) {
             let result = ``;
             // sort metrics by key
-            stats = Object.fromEntries(Object.entries(stats).sort((a, b) => a[0].localeCompare(b[0])));
-            for (const [key, value] of Object.entries(stats)) {
+            // stats = Object.fromEntries(Object.entries(stats).sort((a, b) => a[0].localeCompare(b[0])));
+            for (value of Object.values(stats)) {
                 let first_key = Object.keys(value.result)[0];
-                result += `${key}: ${value.result[first_key].toLocaleString()}  (${value.duration_micros} µs)<br>`;
+                result += `${first_key}: ${value.result[first_key].toLocaleString()}  (${value.duration_micros} µs)<br>`;
             }
             return result;
         }

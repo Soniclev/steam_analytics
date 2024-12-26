@@ -3,13 +3,13 @@ use std::{collections::HashMap, time::Instant};
 use crate::MarketItem;
 
 use super::{
-    global::{self, base::{GlobalMetricResult, GlobalMetricType, MetricCalculation}},
-    item::{self, metrics::{ItemMetricCalculation, ItemMetricResult, ItemMetricType}},
+    global::{self, base::{GlobalMetricResult, MetricCalculation}},
+    item::{self, metrics::{ItemMetricCalculation, ItemMetricResult}},
 };
 
 pub struct MetricProcessor {
-    global_metrics: Vec<(GlobalMetricType, Box<dyn MetricCalculation>)>,
-    item_metrics: Vec<(ItemMetricType, Box<dyn ItemMetricCalculation>)>,
+    global_metrics: Vec<Box<dyn MetricCalculation>>,
+    item_metrics: Vec<Box<dyn ItemMetricCalculation>>,
 }
 
 impl MetricProcessor {
@@ -17,62 +17,6 @@ impl MetricProcessor {
         MetricProcessor {
             global_metrics: global::base::get_metrics(),
             item_metrics: item::base::get_metrics(),
-            // global_metrics: vec![
-            //     (
-            //         GlobalMetricType::TotalSold,
-            //         Box::new(metrics::TotalSold),
-            //     ),
-            //     (
-            //         GlobalMetricType::AveragePrice,
-            //         Box::new(metrics::AveragePrice),
-            //     ),
-            //     (
-            //         GlobalMetricType::TotalVolume,
-            //         Box::new(metrics::TotalVolume),
-            //     ),
-            //     (
-            //         GlobalMetricType::SteamEstimatedFee,
-            //         Box::new(metrics::SteamEstimatedFee),
-            //     ),
-            //     (
-            //         GlobalMetricType::GameEstimatedFee,
-            //         Box::new(metrics::GameEstimatedFee),
-            //     ),
-            //     (
-            //         GlobalMetricType::ValveEstimatedFee,
-            //         Box::new(metrics::ValveEstimatedFee),
-            //     ),
-            //     (
-            //         GlobalMetricType::CS2TotalItemsByCategory,
-            //         Box::new(huge::cs2::CS2TotalItemsByCategory),
-            //     )
-            // ],
-            // item_metrics: vec![
-            //     (
-            //         ItemMetricType::ItemTotalSold,
-            //         Box::new(item_metrics::ItemTotalSold),
-            //     ),
-            //     (
-            //         ItemMetricType::ItemTotalVolume,
-            //         Box::new(item_metrics::ItemTotalVolume),
-            //     ),
-            //     (
-            //         ItemMetricType::ItemSteamEstimatedFee,
-            //         Box::new(item_metrics::ItemSteamEstimatedFee),
-            //     ),
-            //     (
-            //         ItemMetricType::ItemGameEstimatedFee,
-            //         Box::new(item_metrics::ItemGameEstimatedFee),
-            //     ),
-            //     (
-            //         ItemMetricType::ItemValveEstimatedFee,
-            //         Box::new(item_metrics::ItemValveEstimatedFee),
-            //     ),
-            //     (
-            //         ItemMetricType::ItemPopularityScore,
-            //         Box::new(item_metrics::ItemPopularityScore),
-            //     ),
-            // ],
         }
     }
 
@@ -82,13 +26,12 @@ impl MetricProcessor {
     ) -> Vec<GlobalMetricResult> {
         self.global_metrics
             .iter()
-            .filter(|(_kind, metric)| !metric.is_huge())
-            .map(|(kind, metric)| {
+            .filter(| metric| !metric.is_huge())
+            .map(|metric| {
                 let start_time = Instant::now();
                 let value = metric.calculate(items);
                 let duration_micros = start_time.elapsed().as_micros();
                 GlobalMetricResult {
-                    kind: kind.clone(),
                     result: value,
                     duration_micros,
                 }
@@ -99,13 +42,12 @@ impl MetricProcessor {
     pub fn process_global_huge(&self, items: &HashMap<String, MarketItem>,) -> Vec<GlobalMetricResult> {
         self.global_metrics
             .iter()
-            .filter(|(_kind, metric)| metric.is_huge())
-            .map(|(kind, metric)| {
+            .filter(| metric| metric.is_huge())
+            .map(| metric| {
                 let start_time = Instant::now();
                 let value = metric.calculate(items);
                 let duration_micros = start_time.elapsed().as_micros();
                 GlobalMetricResult {
-                    kind: kind.clone(),
                     result: value,
                     duration_micros,
                 }
@@ -116,11 +58,12 @@ impl MetricProcessor {
     pub fn process_item(&self, item: &mut MarketItem) -> Vec<ItemMetricResult> {
         self.item_metrics
             .iter()
-            .map(|(kind, metric)| {
-                if item.metrics.contains_key(kind) {
+            .map(|metric| {
+                let kind = metric.to_string();
+                if item.metrics.contains_key(&kind) {
                     return ItemMetricResult {
-                        kind: kind.clone(),
-                        result: item.metrics.get(kind).unwrap().clone(),
+                        // kind: kind.clone(),
+                        result: item.metrics.get(&kind).unwrap().clone(),
                         duration_micros: 0,
                     };
                 } else {
@@ -128,7 +71,6 @@ impl MetricProcessor {
                     let value = metric.calculate(item);
                     let duration_micros = start_time.elapsed().as_micros();
                     let item_metric_result = ItemMetricResult {
-                        kind: kind.clone(),
                         result: value,
                         duration_micros,
                     };

@@ -1,32 +1,14 @@
-use crate::compute::item::metrics::{self, ItemMetricType};
+use crate::compute::item::metrics::{self};
 
 use super::metrics::ItemMetricCalculation;
 
-pub fn get_metrics() -> Vec<(ItemMetricType, Box<dyn ItemMetricCalculation>)> {
+pub fn get_metrics() -> Vec<Box<dyn ItemMetricCalculation>> {
     vec![
-                (
-                    ItemMetricType::ItemTotalSold,
-                    Box::new(metrics::ItemTotalSold),
-                ),
-                (
-                    ItemMetricType::ItemTotalVolume,
-                    Box::new(metrics::ItemTotalVolume),
-                ),
-                (
-                    ItemMetricType::ItemSteamEstimatedFee,
-                    Box::new(metrics::ItemSteamEstimatedFee),
-                ),
-                (
-                    ItemMetricType::ItemGameEstimatedFee,
-                    Box::new(metrics::ItemGameEstimatedFee),
-                ),
-                (
-                    ItemMetricType::ItemValveEstimatedFee,
-                    Box::new(metrics::ItemValveEstimatedFee),
-                ),
-                (
-                    ItemMetricType::ItemPopularityScore,
-                    Box::new(metrics::ItemPopularityScore),
-                ),
-            ]
+        Box::new(metrics::ItemTotalSold),
+        Box::new(metrics::ItemTotalVolume),
+        Box::new(metrics::ItemSteamEstimatedFee),
+        Box::new(metrics::ItemGameEstimatedFee),
+        Box::new(metrics::ItemValveEstimatedFee),
+        Box::new(metrics::ItemPopularityScore),
+    ]
 }

@@ -7,32 +7,8 @@ use crate::{
     MarketItem,
 };
 
-#[derive(Clone, PartialEq, Serialize, Hash, Eq)]
-pub enum ItemMetricType {
-    ItemTotalSold,
-    ItemTotalVolume,
-    ItemSteamEstimatedFee,
-    ItemGameEstimatedFee,
-    ItemValveEstimatedFee,
-    ItemPopularityScore,
-}
-
-impl ToString for ItemMetricType {
-    fn to_string(&self) -> String {
-        match self {
-            ItemMetricType::ItemTotalSold => "TotalSold".to_string(),
-            ItemMetricType::ItemTotalVolume => "TotalVolume".to_string(),
-            ItemMetricType::ItemSteamEstimatedFee => "SteamEstimatedFee".to_string(),
-            ItemMetricType::ItemGameEstimatedFee => "GameEstimatedFee".to_string(),
-            ItemMetricType::ItemValveEstimatedFee => "ValveEstimatedFee".to_string(),
-            ItemMetricType::ItemPopularityScore => "PopularityScore".to_string(),
-        }
-    }
-}
-
 #[derive(Serialize, Clone)]
 pub struct ItemMetricResult {
-    pub kind: ItemMetricType,
     pub result: ItemMetricValue,
     pub duration_micros: u128,
 }
@@ -51,20 +27,19 @@ macro_rules! define_metric {
         pub struct $metric_name;
 
         impl ItemMetricCalculation for $metric_name {
+            fn to_string(&self) -> String {
+                stringify!($metric_name).to_string()
+            }
+
             fn calculate(&self, item: &MarketItem) -> ItemMetricValue {
                 $calc_body(item)
             }
         }
-
-        // impl ToString for $metric_name {
-        //     fn to_string(&self) -> String {
-        //         stringify!($metric_name).to_string()
-        //     }
-        // }
     };
 }
 
 pub trait ItemMetricCalculation {
+    fn to_string(&self) -> String;
     fn calculate(&self, item: &MarketItem) -> ItemMetricValue;
 }
 

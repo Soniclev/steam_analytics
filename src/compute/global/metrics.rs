@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{compute::item::metrics::{self, ItemMetricValue}, prices::PriceValueTrait, MarketItem};
+use crate::{compute::item::metrics::ItemMetricValue, prices::PriceValueTrait, MarketItem};
 
 use super::base::{GlobalMetricValue, MetricCalculation};
 
@@ -89,10 +89,11 @@ impl MetricCalculation for SteamEstimatedFee {
         let steam_fee: f64 = items
             .iter()
             .map(|(_, item)| {
-                const KIND: metrics::ItemMetricType =
-                    metrics::ItemMetricType::ItemSteamEstimatedFee;
+                // const KIND: metrics::ItemMetricType =
+                //     metrics::ItemMetricType::ItemSteamEstimatedFee;
+                const KIND: &str = stringify!(ItemSteamEstimatedFee);
                 item.metrics
-                    .get(&KIND)
+                    .get(KIND)
                     .and_then(|computed| match computed {
                         ItemMetricValue::SteamEstimatedFee(fee) => Some(fee.clone()),
                         _ => None,
@@ -118,10 +119,11 @@ impl MetricCalculation for GameEstimatedFee {
         let game_fee: f64 = items
             .iter()
             .map(|(_, item)| {
-                const KIND: metrics::ItemMetricType =
-                    metrics::ItemMetricType::ItemGameEstimatedFee;
+                // const KIND: metrics::ItemMetricType =
+                //     metrics::ItemMetricType::ItemGameEstimatedFee;
+                const KIND: &str = stringify!(ItemGameEstimatedFee);
                 item.metrics
-                    .get(&KIND)
+                    .get(KIND)
                     .and_then(|computed| match computed {
                         ItemMetricValue::GameEstimatedFee(fee) => Some(fee.clone()),
                         _ => None,
@@ -147,10 +149,11 @@ impl MetricCalculation for ValveEstimatedFee {
         let valve_fee: f64 = items
             .iter()
             .map(|(_, item)| {
-                const KIND: metrics::ItemMetricType =
-                    metrics::ItemMetricType::ItemValveEstimatedFee;
+                // const KIND: metrics::ItemMetricType =
+                //     metrics::ItemMetricType::ItemValveEstimatedFee;
+                const KIND: &str = stringify!(ItemValveEstimatedFee);
                 item.metrics
-                    .get(&KIND)
+                    .get(KIND)
                     .and_then(|computed| match computed {
                         ItemMetricValue::ValveEstimatedFee(fee) => Some(fee.clone()),
                         _ => None,

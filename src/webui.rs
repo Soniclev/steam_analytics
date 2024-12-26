@@ -5,7 +5,7 @@ use actix_web::Responder;
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 
-use crate::compute::global::base::{GlobalMetricResult, GlobalMetricType};
+use crate::compute::global::base::GlobalMetricResult;
 use crate::compute::item::metrics::ItemMetricResult;
 use crate::compute::processor::MetricProcessor;
 use crate::consts::EVENTS;
@@ -99,7 +99,6 @@ impl ItemCategoryStatsFull {
 struct ItemsApiResponse {
     response_generation_duration: u128,
     global_stats: GlobalStats,
-    // cs2_categories: HashMap<ItemCategory, ItemCategoryStats>,
     items: Vec<MarketItemShort>,
 }
 
@@ -113,7 +112,7 @@ pub async fn static_handler(path: web::Path<String>) -> HttpResponse {
 struct ItemApiResponse {
     item: MarketItem,
     events: Vec<(String, String, String)>,
-    item_metrics: HashMap<String, ItemMetricResult>,
+    item_metrics: Vec<ItemMetricResult>,
     response_generation_duration: u128,
 }
 
@@ -144,7 +143,7 @@ pub async fn item_detail_api_handler(
             .collect(),
         item_metrics: results
             .into_iter()
-            .map(|r| (r.kind.to_string(), r))
+            .map(|r| r)
             .collect(),
         response_generation_duration: resp_gen_started.elapsed().as_micros(),
     };
