@@ -19,7 +19,7 @@ pub fn compute_item_static_metrics(item: &mut MarketItem) {
         .history
         .iter()
         .map(|(_, avg_price, amount)| {
-            avg_price * (*amount as u64)
+            (*avg_price as u64) * (*amount as u64)
         }
         )
         .sum();

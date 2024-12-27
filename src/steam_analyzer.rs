@@ -2,7 +2,7 @@
 
 use std::{ops::Add, time::Instant};
 
-use chrono::{DateTime, Duration, NaiveDateTime, Utc};
+use chrono::{DateTime, Duration, NaiveDate, NaiveDateTime, Utc};
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -37,18 +37,18 @@ lazy_static! {
     static ref SELL_HISTORY_REGEX: Regex = Regex::new(r#"\s+var line1=([^;]+);"#).unwrap();
 }
 
-pub fn extract_sell_history(response: &str) -> Vec<(DateTime<Utc>, f64, i32)> {
+pub fn extract_sell_history(response: &str) -> Vec<(NaiveDate, f64, i32)> {
     if let Some(caps) = SELL_HISTORY_REGEX.captures(response) {
         let Ok(encoded_data) = caps[1].parse::<String>();
         if let Ok(j) = serde_json::from_str::<Vec<Point>>(&encoded_data) {
-            let mut result: Vec<(DateTime<Utc>, f64, i32)> = Vec::new();
+            let mut result: Vec<(NaiveDate, f64, i32)> = Vec::new();
 
             // reservse points for each hour (30 days)
             // and for each day (10 years)
             result.reserve_exact(30 * 24 + 365 * 10);
 
             for point in j.into_iter().rev() {
-                let date = steam_date_str_to_datetime(&point.date);
+                let date = steam_date_str_to_datetime(&point.date).date_naive();
                 let avg_price = point.avg_price;
                 let amount = point.amount.parse::<i32>().unwrap();
                 result.push((date, avg_price, amount));
@@ -68,15 +68,16 @@ pub fn analyze_steam_sell_history(
 ) -> Option<AnalysisResult> {
     let start = Instant::now();
     let days = 30 * 6;
-    let date_range_start = current_datetime - Duration::days(days);
+    let date_range_start = (current_datetime - Duration::days(days)).date_naive();
     let history_data = extract_sell_history(response);
 
     let total_sold = history_data.iter().map(|x| x.2 as u64).sum::<u64>();
     let total_volume: f64 = history_data.iter().map(|x| x.1 * (x.2 as f64)).sum::<f64>();
+    let current_date = current_datetime.date_naive();
 
     let filtered_data: Vec<_> = history_data
         .into_iter()
-        .filter(|&(date, _, _)| date_range_start <= date && date <= current_datetime)
+        .filter(|&(date, _, _)| date_range_start <= date && date <= current_date)
         .collect();
 
     let sold_per_week = filtered_data.iter().map(|x| x.2).sum::<i32>();

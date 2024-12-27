@@ -3,7 +3,7 @@ use actix_web::{
     web, App, HttpRequest, HttpServer, Responder,
 };
 use actix_ws::Message;
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDate, Utc};
 use compute::{
     item::{metrics::{ItemMetricResult, ItemMetricValue}, static_metrics::StaticMetrics},
     processor::MetricProcessor,
@@ -43,7 +43,7 @@ struct MarketItem {
 
     updated_at: DateTime<Utc>,
 
-    history: Vec<(DateTime<Utc>, PriceValue, u32)>,
+    history: Vec<(NaiveDate, u32, u32)>,
     analyzes_result: Option<steam_analyzer::AnalysisResult>,
     static_metrics: StaticMetrics,
 

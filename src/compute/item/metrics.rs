@@ -71,7 +71,7 @@ define_metric!(
         let steam_fee: PriceValue = item
             .history
             .iter()
-            .map(|(_, avg_price, amount)| avg_price * (*amount as u64) / 10) // divide by 10 to get 10% fee
+            .map(|(_, avg_price, amount)| (*avg_price as u64) * (*amount as u64) / 10) // divide by 10 to get 10% fee
             .sum();
 
         ItemMetricValue::SteamEstimatedFee(steam_fee.to_usd())
@@ -85,7 +85,7 @@ define_metric!(
         let game_fee: PriceValue = item
             .history
             .iter()
-            .map(|(_, avg_price, amount)| avg_price * (*amount as u64) / 20) // divide by 20 to get 5% fee
+            .map(|(_, avg_price, amount)| (*avg_price as u64) * (*amount as u64) / 20) // divide by 20 to get 5% fee
             .sum();
 
         ItemMetricValue::GameEstimatedFee(game_fee.to_usd())
@@ -99,13 +99,13 @@ define_metric!(
         let steam_fee: PriceValue = item
             .history
             .iter()
-            .map(|(_, avg_price, amount)| avg_price * (*amount as u64) / 10) // divide by 10 to get 10% fee
+            .map(|(_, avg_price, amount)| (*avg_price as u64) * (*amount as u64) / 10) // divide by 10 to get 10% fee
             .sum();
 
         let game_fee = if VALVE_GAME_IDS.contains(&item.app_id) {
             item.history
                 .iter()
-                .map(|(_, avg_price, amount)| avg_price * (*amount as u64) / 20) // divide by 20 to get 5% fee
+                .map(|(_, avg_price, amount)| (*avg_price as u64) * (*amount as u64) / 20) // divide by 20 to get 5% fee
                 .sum()
         } else {
             0
@@ -126,7 +126,7 @@ define_metric!(
             .iter()
             // filter only items that are sold last 365 days
             .filter(|(date, _, _)| {
-                *date >= Utc::now().checked_sub_signed(Duration::days(365)).unwrap()
+                *date >= Utc::now().checked_sub_signed(Duration::days(365)).unwrap().date_naive()
             })
             .map(|(_, _, amount)| *amount as u64)
             .sum();

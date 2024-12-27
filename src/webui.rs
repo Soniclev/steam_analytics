@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::time::Instant;
 
 use actix_web::Responder;
-use chrono::{DateTime, Utc};
+use chrono::{NaiveDate, Utc};
 use serde::Serialize;
 
 use crate::compute::global::base::GlobalMetricResult;
@@ -85,8 +85,8 @@ pub struct ItemCategoryStatsFull {
     pub total_sold: u64,
     pub total_volume: f64,
 
-    pub sold_per_day: HashMap<DateTime<Utc>, u64>,
-    pub sold_per_month: HashMap<DateTime<Utc>, u64>,
+    pub sold_per_day: HashMap<NaiveDate, u64>,
+    pub sold_per_month: HashMap<NaiveDate, u64>,
 }
 
 impl ItemCategoryStatsFull {

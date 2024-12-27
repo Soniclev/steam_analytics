@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use chrono::{Datelike, Timelike};
+use chrono::{Datelike, NaiveDate};
 
 use crate::{
     compute::{
@@ -43,16 +43,13 @@ impl MetricCalculation for CS2TotalItemsByCategory {
 
                     item.metrics.iter().for_each(|metric| match metric.result {
                         ItemMetricValue::TotalSold(sold) => value.total_sold += sold.clone(),
-                        // ItemMetricValue::TotalVolume(volume) => {
-                        //     value.total_volume += volume.clone()
-                        // }
                         _ => {}
                     });
 
                     value.total_volume += item.static_metrics.total_volume;
 
                     // iterate over history and count sold per month
-                    let mut sold_per_day: HashMap<&chrono::DateTime<chrono::Utc>, u64> =
+                    let mut sold_per_day: HashMap<&NaiveDate, u64> =
                         HashMap::new();
 
                     for (date, _price, amount) in item.history.iter() {
@@ -75,12 +72,6 @@ impl MetricCalculation for CS2TotalItemsByCategory {
 
                         let date_trunc_by_month = dt
                             .with_day(1)
-                            .unwrap()
-                            .with_hour(0)
-                            .unwrap()
-                            .with_minute(0)
-                            .unwrap()
-                            .with_second(0)
                             .unwrap();
                         if let Some(count) = value.sold_per_month.get(&date_trunc_by_month) {
                             value

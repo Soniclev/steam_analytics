@@ -42,7 +42,7 @@ pub fn import_item(page: &String, current_datetime: DateTime<Utc>) -> Option<Mar
                 updated_at: current_datetime,
                 history: extract_sell_history(&page)
                     .into_iter()
-                    .map(|(date, price, amount)| (date, PriceValue::from_usd_f64(price), amount as u32))
+                    .map(|(date, price, amount)| (date, PriceValue::from_usd_f64(price) as u32, amount as u32))
                     .collect(),
                 analyzes_result: analysis_result.clone(),
                 static_metrics: StaticMetrics::new(),
