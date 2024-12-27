@@ -1,11 +1,7 @@
 use chrono::{Duration, Utc};
 use serde::Serialize;
 
-use crate::{
-    consts::VALVE_GAME_IDS,
-    prices::{PriceValue, PriceValueTrait},
-    MarketItem,
-};
+use crate::MarketItem;
 
 #[derive(Serialize, Clone)]
 pub struct ItemMetricResult {
@@ -15,11 +11,6 @@ pub struct ItemMetricResult {
 
 #[derive(Serialize, Clone)]
 pub enum ItemMetricValue {
-    TotalSold(u64),
-    // TotalVolume(f64),
-    SteamEstimatedFee(f64),
-    GameEstimatedFee(f64),
-    ValveEstimatedFee(f64),
     PopularityScore(f64),
 }
 
@@ -40,93 +31,15 @@ pub trait ItemMetricCalculation {
 }
 
 define_metric!(
-    ItemTotalSold,
-    |item: &MarketItem| {
-        let total_sold: u64 = item
-            .history
-            .iter()
-            .map(|(_, _, amount)| *amount as u64)
-            .sum();
-        ItemMetricValue::TotalSold(total_sold)
-    },
-    ItemMetricType::ItemTotalSold
-);
-
-// define_metric!(
-//     ItemTotalVolume,
-//     |item: &MarketItem| {
-//         let total_volume: u64 = item
-//             .history
-//             .iter()
-//             .map(|(_, avg_price, amount)| avg_price * (*amount as u64))
-//             .sum();
-//         ItemMetricValue::TotalVolume(total_volume as f64) // Assuming price is converted
-//     },
-//     ItemMetricType::ItemTotalVolume
-// );
-
-define_metric!(
-    ItemSteamEstimatedFee,
-    |item: &MarketItem| {
-        let steam_fee: PriceValue = item
-            .history
-            .iter()
-            .map(|(_, avg_price, amount)| (*avg_price as u64) * (*amount as u64) / 10) // divide by 10 to get 10% fee
-            .sum();
-
-        ItemMetricValue::SteamEstimatedFee(steam_fee.to_usd())
-    },
-    ItemMetricType::ItemSteamEstimatedFee
-);
-
-define_metric!(
-    ItemGameEstimatedFee,
-    |item: &MarketItem| {
-        let game_fee: PriceValue = item
-            .history
-            .iter()
-            .map(|(_, avg_price, amount)| (*avg_price as u64) * (*amount as u64) / 20) // divide by 20 to get 5% fee
-            .sum();
-
-        ItemMetricValue::GameEstimatedFee(game_fee.to_usd())
-    },
-    ItemMetricType::ItemGameEstimatedFee
-);
-
-define_metric!(
-    ItemValveEstimatedFee,
-    |item: &MarketItem| {
-        let steam_fee: PriceValue = item
-            .history
-            .iter()
-            .map(|(_, avg_price, amount)| (*avg_price as u64) * (*amount as u64) / 10) // divide by 10 to get 10% fee
-            .sum();
-
-        let game_fee = if VALVE_GAME_IDS.contains(&item.app_id) {
-            item.history
-                .iter()
-                .map(|(_, avg_price, amount)| (*avg_price as u64) * (*amount as u64) / 20) // divide by 20 to get 5% fee
-                .sum()
-        } else {
-            0
-        };
-
-        let valve_fee = steam_fee + game_fee;
-
-        ItemMetricValue::ValveEstimatedFee(valve_fee.to_usd())
-    },
-    ItemMetricType::ItemValveEstimatedFee
-);
-
-define_metric!(
     ItemPopularityScore,
     |item: &MarketItem| {
+        let begin_from = Utc::now().checked_sub_signed(Duration::days(365)).unwrap().date_naive();
         let total_sold: u64 = item
             .history
             .iter()
             // filter only items that are sold last 365 days
             .filter(|(date, _, _)| {
-                *date >= Utc::now().checked_sub_signed(Duration::days(365)).unwrap().date_naive()
+                *date >= begin_from
             })
             .map(|(_, _, amount)| *amount as u64)
             .sum();

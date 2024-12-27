@@ -63,9 +63,8 @@
                 </tr>`;
                 }
         
-                let total_sold = item.metrics.find(m => Object.keys(m)[0] === 'TotalSold')["TotalSold"];
+                let total_sold = item.static_metrics.total_sold;
                 let total_volume = item.static_metrics.total_volume;
-                // let total_volume = item.metrics.find(m => Object.keys(m)[0] === 'TotalVolume')["TotalVolume"];
                 return `<tr>
                 <td><a href="/static/item.html?app_id=${item.app_id}&market_name=${encodeURIComponent(item.name)}">${item.app_id}</a></td>
                 <td><a href="/static/item.html?app_id=${item.app_id}&market_name=${encodeURIComponent(item.name)}">${item.name}</a></td>

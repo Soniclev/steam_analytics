@@ -2,7 +2,7 @@
 
 ### System Requirements
 - Rust (should be insttalled. If not, follow the instructions [here](https://www.rust-lang.org/tools/install))
-- At least free 3GB of RAM (for 21k items, CS2 game only)
+- At least free 650MB of RAM (for 21k items, CS2 game only)
 
 
 ### How to run

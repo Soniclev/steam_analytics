@@ -37,11 +37,11 @@ lazy_static! {
     static ref SELL_HISTORY_REGEX: Regex = Regex::new(r#"\s+var line1=([^;]+);"#).unwrap();
 }
 
-pub fn extract_sell_history(response: &str) -> Vec<(NaiveDate, f64, i32)> {
+pub fn extract_sell_history(response: &str) -> Vec<(NaiveDate, f64, u32)> {
     if let Some(caps) = SELL_HISTORY_REGEX.captures(response) {
         let Ok(encoded_data) = caps[1].parse::<String>();
         if let Ok(j) = serde_json::from_str::<Vec<Point>>(&encoded_data) {
-            let mut result: Vec<(NaiveDate, f64, i32)> = Vec::new();
+            let mut result: Vec<(NaiveDate, f64, u32)> = Vec::new();
 
             // reservse points for each hour (30 days)
             // and for each day (10 years)
@@ -50,7 +50,17 @@ pub fn extract_sell_history(response: &str) -> Vec<(NaiveDate, f64, i32)> {
             for point in j.into_iter().rev() {
                 let date = steam_date_str_to_datetime(&point.date).date_naive();
                 let avg_price = point.avg_price;
-                let amount = point.amount.parse::<i32>().unwrap();
+                let amount = point.amount.parse::<u32>().unwrap();
+
+                // to sum up the same day (because last 30 days stored per hour)
+                if let Some((last_date, last_avg_price, last_amount)) = result.last_mut() {
+                    if *last_date == date {
+                        * last_avg_price = (*last_avg_price + avg_price) / 2.0;
+                        *last_amount += amount;
+                        continue; 
+                    }
+                }
+
                 result.push((date, avg_price, amount));
             }
 
@@ -63,13 +73,14 @@ pub fn extract_sell_history(response: &str) -> Vec<(NaiveDate, f64, i32)> {
 }
 
 pub fn analyze_steam_sell_history(
-    response: &str,
+    history_data: &Vec<(NaiveDate, f64, u32)>,
+    // response: &str,
     current_datetime: DateTime<Utc>,
 ) -> Option<AnalysisResult> {
     let start = Instant::now();
     let days = 30 * 6;
     let date_range_start = (current_datetime - Duration::days(days)).date_naive();
-    let history_data = extract_sell_history(response);
+    // let history_data = extract_sell_history(response);
 
     let total_sold = history_data.iter().map(|x| x.2 as u64).sum::<u64>();
     let total_volume: f64 = history_data.iter().map(|x| x.1 * (x.2 as f64)).sum::<f64>();
@@ -77,10 +88,10 @@ pub fn analyze_steam_sell_history(
 
     let filtered_data: Vec<_> = history_data
         .into_iter()
-        .filter(|&(date, _, _)| date_range_start <= date && date <= current_date)
+        .filter(|&(date, _, _)| date_range_start <= *date && *date <= current_date)
         .collect();
 
-    let sold_per_week = filtered_data.iter().map(|x| x.2).sum::<i32>();
+    let sold_per_week = filtered_data.iter().map(|x| x.2).sum::<u32>();
 
     let mut prices: Vec<f64> = filtered_data
         .iter()
@@ -245,7 +256,7 @@ pub fn simple_moving_average(array_prices: &[f64], window: u32) -> Vec<f64> {
 pub struct AnalysisResult {
     pub rsd: Option<f64>,
     pub is_stable: Option<bool>,
-    pub sold_per_week: Option<i32>,
+    pub sold_per_week: Option<u32>,
     pub percentiles: Vec<(u8, PriceValue)>,
     pub percentiles_no_fee: Vec<(u8, PriceValue)>,
 

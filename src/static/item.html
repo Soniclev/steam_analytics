@@ -38,10 +38,16 @@
         }
 
         function formatItemStats(stats) {
+            let static_metrics = stats.item.static_metrics;
             let result = ``;
+            result += `Total sold: ${static_metrics.total_sold.toLocaleString()} pcs<br>`;
+            result += `Total volume: ${static_metrics.total_volume.toLocaleString()} USD<br>`;
+            result += `Steam estimated fee: ${static_metrics.steam_estimated_fee.toLocaleString()} USD<br>`;
+            result += `Game estimated fee: ${static_metrics.game_estimated_fee.toLocaleString()} USD<br>`;
+            result += `Valve estimated fee: ${static_metrics.valve_estimated_fee.toLocaleString()} USD<br>`;
             // sort metrics by key
             // stats = Object.fromEntries(Object.entries(stats).sort((a, b) => a[0].localeCompare(b[0])));
-            for (value of Object.values(stats)) {
+            for (value of Object.values(stats.item_metrics)) {
                 let first_key = Object.keys(value.result)[0];
                 result += `${first_key}: ${value.result[first_key].toLocaleString()}  (${value.duration_micros} µs)<br>`;
             }
@@ -82,7 +88,7 @@
                 const telemetry = document.getElementById('telemetry');
                 telemetry.innerHTML = `Response generation duration: ${data.response_generation_duration} µs<br>`;
                 const itemMetrics = document.getElementById('item-metrics');
-                itemMetrics.innerHTML = formatItemStats(data.item_metrics);
+                itemMetrics.innerHTML = formatItemStats(data);
                 const itemContent = document.getElementById('item-content');
                 itemContent.innerHTML = formatItem(data.item);
 

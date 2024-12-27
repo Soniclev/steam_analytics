@@ -3,10 +3,7 @@ use std::collections::HashMap;
 use chrono::{Datelike, NaiveDate};
 
 use crate::{
-    compute::{
-        global::base::{GlobalMetricValue, MetricCalculation},
-        item::metrics::ItemMetricValue,
-    },
+    compute::global::base::{GlobalMetricValue, MetricCalculation},
     game::cs2::ItemCategory,
     webui::ItemCategoryStatsFull,
     MarketItem, MarketItemState,
@@ -40,12 +37,7 @@ impl MetricCalculation for CS2TotalItemsByCategory {
             match item.state {
                 MarketItemState::Analyzed => {
                     value.total_analyzed_items += 1;
-
-                    item.metrics.iter().for_each(|metric| match metric.result {
-                        ItemMetricValue::TotalSold(sold) => value.total_sold += sold.clone(),
-                        _ => {}
-                    });
-
+                    value.total_sold += item.static_metrics.total_sold;
                     value.total_volume += item.static_metrics.total_volume;
 
                     // iterate over history and count sold per month

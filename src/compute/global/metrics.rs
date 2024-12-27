@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{compute::item::metrics::ItemMetricValue, prices::PriceValueTrait, MarketItem};
+use crate::{prices::PriceValueTrait, MarketItem};
 
 use super::base::{GlobalMetricValue, MetricCalculation};
 
@@ -54,9 +54,6 @@ impl MetricCalculation for TotalVolume {
             .iter()
             .map(|(_, item)| {
                 item.static_metrics.total_volume
-                // item.analyzes_result
-                //     .as_ref()
-                //     .map_or(0.0, |r| r.total_volume)
             })
             .sum();
 
@@ -73,14 +70,7 @@ impl MetricCalculation for SteamEstimatedFee {
         let steam_fee: f64 = items
             .iter()
             .map(|(_, item)| {
-                item.metrics
-                    .iter()
-                    .find(|m| matches!(m.result, ItemMetricValue::SteamEstimatedFee(_)))
-                    .and_then(|computed| match computed.result {
-                        ItemMetricValue::SteamEstimatedFee(fee) => Some(fee.clone()),
-                        _ => None,
-                    })
-                    .unwrap_or(0.0)
+                item.static_metrics.steam_estimated_fee
             })
             .sum();
 
@@ -97,15 +87,7 @@ impl MetricCalculation for GameEstimatedFee {
         let game_fee: f64 = items
             .iter()
             .map(|(_, item)| {
-                item.metrics
-                    // .get(KIND)
-                    .iter()
-                    .find(|m| matches!(m.result, ItemMetricValue::GameEstimatedFee(_)))
-                    .and_then(|computed| match computed.result {
-                        ItemMetricValue::GameEstimatedFee(fee) => Some(fee.clone()),
-                        _ => None,
-                    })
-                    .unwrap_or(0.0)
+                item.static_metrics.game_estimated_fee
             })
             .sum();
 
@@ -122,15 +104,7 @@ impl MetricCalculation for ValveEstimatedFee {
         let valve_fee: f64 = items
             .iter()
             .map(|(_, item)| {
-                item.metrics
-                    // .get(KIND)
-                    .iter()
-                    .find(|m| matches!(m.result, ItemMetricValue::ValveEstimatedFee(_)))
-                    .and_then(|computed| match computed.result {
-                        ItemMetricValue::ValveEstimatedFee(fee) => Some(fee.clone()),
-                        _ => None,
-                    })
-                    .unwrap_or(0.0)
+                item.static_metrics.valve_estimated_fee
             })
             .sum();
 
