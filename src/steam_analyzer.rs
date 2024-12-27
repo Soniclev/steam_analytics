@@ -80,10 +80,7 @@ pub fn analyze_steam_sell_history(
     let start = Instant::now();
     let days = 30 * 6;
     let date_range_start = (current_datetime - Duration::days(days)).date_naive();
-    // let history_data = extract_sell_history(response);
 
-    let total_sold = history_data.iter().map(|x| x.2 as u64).sum::<u64>();
-    let total_volume: f64 = history_data.iter().map(|x| x.1 * (x.2 as f64)).sum::<f64>();
     let current_date = current_datetime.date_naive();
 
     let filtered_data: Vec<_> = history_data
@@ -99,15 +96,11 @@ pub fn analyze_steam_sell_history(
         .collect();
     if prices.len() < 5 {
         return Some(AnalysisResult {
-            rsd: None,
-            is_stable: None,
-            sold_per_week: Some(sold_per_week),
+            rsd: 0.0,
+            is_stable: false,
+            sold_per_week: 0,
             percentiles: vec![],
             percentiles_no_fee: vec![],
-
-            // new fields
-            total_sold,
-            total_volume,
 
             // performance
             duration_micros: start.elapsed().as_micros(),
@@ -135,15 +128,11 @@ pub fn analyze_steam_sell_history(
     let sma = simple_moving_average(&prices, 3);
     if sma.is_empty() {
         return Some(AnalysisResult {
-            rsd: None,
-            is_stable: None,
-            sold_per_week: None,
+            rsd: 0.0,
+            is_stable: false,
+            sold_per_week: 0,
             percentiles: vec![],
             percentiles_no_fee: vec![],
-
-            // new fields
-            total_sold,
-            total_volume,
 
             // performance
             duration_micros: start.elapsed().as_micros(),
@@ -166,15 +155,11 @@ pub fn analyze_steam_sell_history(
         .collect();
 
     Some(AnalysisResult {
-        rsd: Some(sma_rel_std),
-        is_stable: Some(is_stable),
-        sold_per_week: Some(sold_per_week),
+        rsd: sma_rel_std as f32,
+        is_stable: is_stable,
+        sold_per_week: sold_per_week,
         percentiles,
         percentiles_no_fee: vec![],
-
-        // new fields
-        total_sold,
-        total_volume,
 
         // performance
         duration_micros: start.elapsed().as_micros(),
@@ -254,15 +239,11 @@ pub fn simple_moving_average(array_prices: &[f64], window: u32) -> Vec<f64> {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AnalysisResult {
-    pub rsd: Option<f64>,
-    pub is_stable: Option<bool>,
-    pub sold_per_week: Option<u32>,
+    pub rsd: f32,
+    pub is_stable: bool,
+    pub sold_per_week: u32,
     pub percentiles: Vec<(u8, PriceValue)>,
     pub percentiles_no_fee: Vec<(u8, PriceValue)>,
-
-    // new fields
-    pub total_sold: u64,
-    pub total_volume: f64,
 
     //peformance metrics
     pub duration_micros: u128,
@@ -289,13 +270,11 @@ mod tests {
     fn test_get_price_by_percentile_with_existing_percentile() {
         // Create an AnalysisResult instance with some percentiles
         let analysis_result = AnalysisResult {
-            rsd: Some(0.5),
-            is_stable: Some(true),
-            sold_per_week: Some(10),
+            rsd: 0.5,
+            is_stable: true,
+            sold_per_week: 10,
             percentiles: vec![(25, 10), (50, 20), (75, 30)],
             percentiles_no_fee: vec![],
-            total_sold: 10,
-            total_volume: 100.0,
             duration_micros: 0,
         };
 
@@ -312,13 +291,11 @@ mod tests {
     fn test_get_price_by_percentile_with_non_existing_percentile() {
         // Create an AnalysisResult instance with some percentiles
         let analysis_result = AnalysisResult {
-            rsd: Some(0.5),
-            is_stable: Some(true),
-            sold_per_week: Some(10),
+            rsd: 0.5,
+            is_stable: true,
+            sold_per_week: 10,
             percentiles: vec![(25, 10), (50, 20), (75, 30)],
             percentiles_no_fee: vec![],
-            total_sold: 10,
-            total_volume: 100.0,
             duration_micros: 0,
         };
 
@@ -334,13 +311,11 @@ mod tests {
     fn test_get_price_by_percentile_with_empty_percentiles() {
         // Create an AnalysisResult instance with empty percentiles
         let analysis_result = AnalysisResult {
-            rsd: Some(0.5),
-            is_stable: Some(true),
-            sold_per_week: Some(10),
+            rsd: 0.5,
+            is_stable: true,
+            sold_per_week: 10,
             percentiles: vec![],
             percentiles_no_fee: vec![],
-            total_sold: 10,
-            total_volume: 100.0,
             duration_micros: 0,
         };
 

@@ -19,7 +19,7 @@ impl MetricCalculation for TotalSold {
     fn calculate(&self, items: &HashMap<String, MarketItem>) -> GlobalMetricValue {
         let total_sold: u64 = items
             .iter()
-            .map(|(_, item)| item.analyzes_result.as_ref().map_or(0, |r| r.total_sold))
+            .map(|(_, item)| item.static_metrics.total_sold)
             .sum();
 
         GlobalMetricValue::TotalSold(total_sold)
